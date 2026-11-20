@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RS7 Linux</title>
+<style>
+:root{--bg:#0e1013;--panel:#171a1f;--panel2:#1f242b;--line:#2c333c;--fg:#e6e9ee;--mut:#8b95a3;--acc:#4ade80;--acc2:#22c55e;--bad:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:18px;margin:0}header .sp{flex:1}.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px 12px;color:var(--mut);font-size:13px}
+nav{display:flex;gap:4px;padding:0 24px;border-bottom:1px solid var(--line)}
+nav button{background:none;border:0;color:var(--mut);padding:12px 18px;font-size:15px;cursor:pointer;border-bottom:2px solid transparent}
+nav button.on{color:var(--fg);border-color:var(--acc)}
+main{max-width:980px;margin:24px auto;padding:0 24px}section{display:none}section.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
+.card h2{margin:0 0 4px;font-size:16px}.card p{margin:0 0 14px;color:var(--mut);font-size:13px}
+.row{display:flex;align-items:center;gap:12px;margin:10px 0;flex-wrap:wrap}.row label{min-width:110px;color:var(--mut)}
+input,select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}
+input[type=range]{padding:0;accent-color:var(--acc);flex:1;min-width:160px}input[type=number]{width:100px}
+button.pri{background:var(--acc2);color:#04130a;border:0;border-radius:8px;padding:9px 20px;font-weight:600;cursor:pointer}
+button.sec{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:9px 16px;cursor:pointer}
+.seg{display:flex;gap:6px}.seg button{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 16px;cursor:pointer}
+.seg button.on{border-color:var(--acc);color:var(--acc)}
+.mouse{display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:start}
+svg .hot{fill:var(--panel2);stroke:var(--line);stroke-width:2;cursor:pointer}svg .hot:hover,svg .hot.on{fill:#1c3a29;stroke:var(--acc)}
+svg text{fill:var(--mut);font-size:11px;pointer-events:none}
+.mods label{min-width:0;margin-right:8px;color:var(--fg)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:10px 18px;border-radius:10px;opacity:0;transition:.2s;pointer-events:none}
+#toast.show{opacity:1}#toast.err{border-color:var(--bad);color:var(--bad)}
+.dpi{display:grid;grid-template-columns:28px 1fr 100px;gap:12px;align-items:center;margin:10px 0}
+.dpi.cur .n{color:var(--acc);font-weight:700}.dpi.off{opacity:.4}
+.warn{color:var(--mut);font-size:12px}#err{display:none;margin:60px auto;max-width:520px;text-align:center}
+@media(max-width:700px){.mouse{grid-template-columns:1fr}}
+</style></head><body>
+<header><h1>RS7 <span style="color:var(--acc)">Linux</span></h1><span class="chip" id="fw">—</span><span class="chip" id="bat">—</span><span class="sp"></span><span class="chip">unofficial · not affiliated with Smailwolf</span></header>
+<div id="err" class="card"><h2>Mouse not available</h2><p id="errmsg"></p><button class="pri" onclick="load()">Retry</button></div>
+<div id="app" style="display:none">
+<nav id="tabs"></nav><main>
+<section id="t-buttons"><div class="card"><h2>Button mapping</h2><p>Click a button on the mouse, choose its action, then Apply.</p>
+<div class="mouse"><svg viewBox="0 0 260 380" width="260"><path d="M50 150C50 60 90 20 130 20s80 40 80 130v130c0 60-40 90-80 90s-80-30-80-90z" fill="#12151a" stroke="#2c333c" stroke-width="2"/>
+<path id="b0" class="hot" d="M54 140C54 70 88 30 126 26V140z"/><path id="b1" class="hot" d="M134 26c38 4 72 44 72 114H134z"/>
+<rect id="b2" class="hot" x="119" y="52" width="22" height="50" rx="10"/><rect id="b3" class="hot" x="36" y="170" width="28" height="36" rx="8"/><rect id="b4" class="hot" x="36" y="212" width="28" height="36" rx="8"/><rect id="b5" class="hot" x="119" y="116" width="22" height="26" rx="8"/>
+<text x="130" y="82" text-anchor="middle">scroll</text></svg>
+<div><div class="row"><label>Button</label><b id="bname"></b></div>
+<div class="row"><label>Action</label><select id="atype"></select></div>
+<div class="row" id="rmouse"><label>Mouse</label><select id="amouse"></select></div>
+<div class="row" id="rkey"><label>Key</label><select id="akey"></select></div>
+<div class="row mods" id="rmods"><label>Modifiers</label><span id="mods"></span></div>
+<div class="row" id="rmedia"><label>Media</label><select id="amedia"></select></div>
+<div class="row"><button class="pri" onclick="applyKeys()">Apply all buttons</button><button class="sec" onclick="resetKeys()">Reset to defaults</button></div>
+<p class="warn">Changes are staged until you press Apply. Keep Left click mapped so you can still use the mouse.</p></div></div></div></section>
+<section id="t-dpi"><div class="card"><h2>DPI stages</h2><p>Up to 6 stages cycled by the DPI button. Radio = active stage.</p><div id="dpis"></div>
+<div class="row"><label>Enabled stages</label><select id="dcount"></select></div><div class="row"><button class="pri" onclick="applyDpi()">Apply</button></div></div></section>
+<section id="t-perf"><div class="card"><h2>Performance</h2><p>Applied immediately.</p>
+<div class="row"><label>Polling rate</label><select id="rate"></select><span class="warn">USB cable mode may be locked to 1000 Hz by firmware</span></div>
+<div class="row"><label>Lift-off distance</label><div class="seg" id="lod"></div></div>
+<div class="row"><label>Debounce (ms)</label><input type="number" id="deb" min="0" max="20"></div>
+<div class="row"><label>Sleep after</label><select id="sleep"></select></div>
+<div class="row"><label>Scroll</label><div class="seg" id="scroll"></div></div>
+<div class="row"><label>E-sports mode</label><input type="checkbox" id="esp"><span class="warn">lower latency, more power</span></div>
+<div class="row"><label>Sensor</label><span><label><input type="checkbox" data-s="ripple"> Ripple control</label> <label><input type="checkbox" data-s="angle_snap"> Angle snap</label> <label><input type="checkbox" data-s="motion_sync"> Motion sync</label></span></div>
+<div class="row"><button class="pri" onclick="applyPerf()">Apply</button></div></div></section>
+<section id="t-light"><div class="card"><h2>Lighting</h2><p>Mode (the RS7 firmware exposes off / steady / breathing).</p><div class="seg" id="light"></div></div></section>
+</main></div><div id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);let S=null,TOKEN="",sel=0,keys=[];
+const BN=["Left click","Right click","Middle click","Back","Forward","DPI button"];
+const MOUSE=[["Left click",1],["Right click",2],["Middle click",4],["Back",8],["Forward",16],["Disabled",0]];
+const MEDIA=[["Volume +",233,0],["Volume −",234,0],["Mute",226,0],["Play/Pause",205,0],["Stop",183,0],["Previous track",182,0],["Next track",181,0],["Homepage",35,2],["Browser refresh",39,2],["Browser back",36,2],["Browser forward",37,2],["Calculator",146,1],["My computer",148,1],["Mail",138,1]];
+const KEYS=[...Array(26)].map((_,i)=>[String.fromCharCode(65+i),4+i]).concat([..."1234567890"].map((c,i)=>[c,30+i]),[["Enter",40],["Esc",41],["Backspace",42],["Tab",43],["Space",44],["Delete",76],["Insert",73],["Home",74],["End",77],["Page Up",75],["Page Down",78],["Print Screen",70],["→",79],["←",80],["↓",81],["↑",82]],[...Array(12)].map((_,i)=>["F"+(i+1),58+i]));
+const MODS=[["Ctrl",1],["Shift",2],["Alt",4],["Super",8]];
+function toast(m,e){const t=$("toast");t.textContent=m;t.className="show"+(e?" err":"");clearTimeout(t._t);t._t=setTimeout(()=>t.className="",2600)}
+async function api(path,body){const r=await fetch(path,body===undefined?{}:{method:"POST",headers:{"Content-Type":"application/json","X-RS7-Token":TOKEN},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
+function opts(el,list,f){el.innerHTML=list.map((x,i)=>`<option value="${i}">${f(x)}</option>`).join("")}
+function seg(el,items,get,set){el.innerHTML="";items.forEach(([lab,val])=>{const b=document.createElement("button");b.textContent=lab;b.className=get()===val?"on":"";b.onclick=()=>{set(val);[...el.children].forEach(c=>c.className="");b.className="on"};el.appendChild(b)})}
+let P={};
+function render(){const c=S.config;$("fw").textContent=(S.info.id||"mouse")+" · "+S.info.build;$("bat").textContent="battery "+S.info.percent+"%"+(S.info.charging?" ⚡":"");
+ // dpi
+ $("dpis").innerHTML="";c.dpis.forEach((v,i)=>{const d=document.createElement("div");d.className="dpi"+(i==c.dpi_index?" cur":"")+(i>=c.dpi_count?" off":"");
+  d.innerHTML=`<span class="n"><input type="radio" name="cur" ${i==c.dpi_index?"checked":""}></span><input type="range" min="100" max="20000" step="50" value="${v}"><input type="number" min="100" max="20000" step="50" value="${v}">`;
+  const [r,rg,n]=[d.children[0].firstChild,d.children[1],d.children[2]];rg.oninput=()=>n.value=rg.value;n.onchange=()=>rg.value=n.value;r.onchange=()=>c.dpi_index=i;$("dpis").appendChild(d)});
+ opts($("dcount"),[1,2,3,4,5,6],x=>x);$("dcount").value=c.dpi_count-1;
+ // perf
+ opts($("rate"),S.meta.rates,x=>x+" Hz");$("rate").value=c.report_rate;
+ P.lod=c.lod;seg($("lod"),[["1 mm",1],["2 mm",2]],()=>P.lod,v=>P.lod=v);
+ $("deb").value=c.debounce_ms==255?2:c.debounce_ms;
+ opts($("sleep"),S.meta.sleep,x=>x==255?"Firmware default":x+" min");$("sleep").value=Math.max(0,S.meta.sleep.indexOf(c.sleep_min));
+ P.scr=c.scroll_reverse;seg($("scroll"),[["Normal",false],["Reversed",true]],()=>P.scr,v=>P.scr=v);
+ $("esp").checked=c.e_sports;document.querySelectorAll("[data-s]").forEach(e=>e.checked=!!(c.sensor_flag&S.meta.sensor_bits[e.dataset.s]));
+ seg($("light"),S.meta.lights.map((l,i)=>[l[0].toUpperCase()+l.slice(1),i]),()=>c.light_mode,async v=>{try{await api("/api/light",{mode:v});c.light_mode=v;toast("Lighting set")}catch(e){toast(e.message,1)}});
+}
+function decode(e){const[t,a,b]=e;if(t==0x20)return["mouse",MOUSE.findIndex(m=>m[1]==a)];if(t==0x21&&a==0x55)return["dpi",0];if(t==0x21&&a==0x38)return[b==1?"wup":"wdn",0];
+ if(t==0x10)return["key",KEYS.findIndex(k=>k[1]==b),a];if(t==0x30)return["media",MEDIA.findIndex(m=>m[1]==a&&m[2]==b)];return["mouse",5]}
+const ATYPES=[["mouse","Mouse button"],["dpi","DPI loop"],["wup","Wheel up"],["wdn","Wheel down"],["key","Keyboard key"],["media","Media"]];
+function showSel(){const e=keys[sel],d=decode(e);for(let i=0;i<6;i++)$("b"+i).classList.toggle("on",i==sel);$("bname").textContent=BN[sel];
+ $("atype").value=ATYPES.findIndex(a=>a[0]==d[0]);if(d[1]>=0){if(d[0]=="mouse")$("amouse").value=d[1];if(d[0]=="key")$("akey").value=d[1];if(d[0]=="media")$("amedia").value=d[1]}
+ [...$("mods").querySelectorAll("input")].forEach((c,i)=>c.checked=d[0]=="key"&&!!(d[2]&MODS[i][1]));vis()}
+function vis(){const t=ATYPES[$("atype").value][0];$("rmouse").style.display=t=="mouse"?"":"none";$("rkey").style.display=$("rmods").style.display=t=="key"?"":"none";$("rmedia").style.display=t=="media"?"":"none"}
+function stage(){const t=ATYPES[$("atype").value][0];let e;
+ if(t=="mouse")e=[0x20,MOUSE[$("amouse").value][1],0,0];else if(t=="dpi")e=[0x21,0x55,0,0];else if(t=="wup")e=[0x21,0x38,1,0];else if(t=="wdn")e=[0x21,0x38,255,0];
+ else if(t=="key"){let m=0;[...$("mods").querySelectorAll("input")].forEach((c,i)=>{if(c.checked)m|=MODS[i][1]});e=[0x10,m,KEYS[$("akey").value][1],0]}
+ else{const x=MEDIA[$("amedia").value];e=[0x30,x[1],x[2],0]}keys[sel]=e}
+async function load(){try{S=await api("/api/state");TOKEN=S.token;$("err").style.display="none";$("app").style.display="";keys=S.keys.slice(0,6).map((e,i)=>e[0]==255?DEFK[i]:e);render();showSel()}catch(e){$("app").style.display="none";$("err").style.display="";$("errmsg").textContent=e.message}}
+const DEFK=[[0x20,1,0,0],[0x20,2,0,0],[0x20,4,0,0],[0x20,8,0,0],[0x20,16,0,0],[0x21,0x55,0,0]];
+async function applyKeys(){stage();try{const r=await api("/api/keys",{keys:keys.slice(0,6)});keys=r.slice(0,6).map((e,i)=>e[0]==255?DEFK[i]:e);toast("Buttons applied");showSel()}catch(e){toast(e.message,1)}}
+async function resetKeys(){try{await api("/api/keys/reset",{});await load();toast("Buttons reset")}catch(e){toast(e.message,1)}}
+async function applyDpi(){const rows=[...document.querySelectorAll(".dpi")];const dpis=rows.map(r=>+r.children[2].value);const cur=rows.findIndex(r=>r.children[0].firstChild.checked);
+ try{S.config=await api("/api/config",{dpis,dpi_count:+$("dcount").value+1,dpi_index:Math.max(0,cur)});render();toast("DPI applied")}catch(e){toast(e.message,1)}}
+async function applyPerf(){let sf=0;document.querySelectorAll("[data-s]").forEach(e=>{if(e.checked)sf|=S.meta.sensor_bits[e.dataset.s]});
+ try{S.config=await api("/api/config",{report_rate:+$("rate").value,lod:P.lod,debounce_ms:+$("deb").value,sleep_min:S.meta.sleep[$("sleep").value],scroll_reverse:P.scr,e_sports:$("esp").checked,sensor_flag:sf});render();toast("Performance applied")}catch(e){toast(e.message,1)}}
+// init static bits
+opts($("atype"),ATYPES,a=>a[1]);opts($("amouse"),MOUSE,m=>m[0]);opts($("akey"),KEYS,k=>k[0]);opts($("amedia"),MEDIA,m=>m[0]);
+$("mods").innerHTML=MODS.map(m=>`<label><input type="checkbox"> ${m[0]}</label>`).join("");
+$("atype").onchange=()=>{vis();stage()};["amouse","akey","amedia"].forEach(i=>$(i).onchange=stage);$("mods").onchange=stage;
+for(let i=0;i<6;i++)$("b"+i).onclick=()=>{stage();sel=i;showSel()};
+const TABS=[["buttons","Buttons"],["dpi","DPI"],["perf","Performance"],["light","Lighting"]];
+$("tabs").innerHTML=TABS.map(([k,l],i)=>`<button data-k="${k}" class="${i?"":"on"}">${l}</button>`).join("");
+$("tabs").onclick=e=>{const k=e.target.dataset.k;if(!k)return;document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.k==k));document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id=="t-"+k))};
+$("t-buttons").classList.add("on");load();
+</script></body></html>
