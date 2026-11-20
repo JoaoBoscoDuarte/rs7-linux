@@ -65,3 +65,8 @@ class Mouse:
     def set_light(self, mode: int):
         self.xfer(p.req_light(mode))
         return self.config()["light_mode"]
+
+    def upload_macros(self, macros):
+        """Write the whole macro memory (vendor behaviour: image is always rewritten in full)."""
+        for f in p.macro_frames(p.build_macro_image(macros)):
+            self.xfer(f)

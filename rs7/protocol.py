@@ -53,7 +53,7 @@ def parse_battery(r): return {"percent": r[8], "charging": bool(r[9])}
 def parse_version(r):
     ident = bytes(r[8:20]).split(b"\0")[0].decode("ascii", "replace")
     build = bytes(r[23:]).decode("ascii", "replace").strip("\0")
-    return {"id": ident, "build": build}
+    return {"id": ident, "build": build, "fw": build[:3], "date": build[3:14].replace("  ", " ")}
 
 
 # ---- main config block --------------------------------------------------
@@ -122,7 +122,8 @@ def req_light(mode: int):
 
 # ---- buttons ------------------------------------------------------------
 BUTTONS = ("left", "right", "middle", "back", "forward", "dpi")
-T_MOUSE, T_SPECIAL, T_KEY, T_MEDIA = 0x20, 0x21, 0x10, 0x30
+T_MOUSE, T_SPECIAL, T_KEY, T_MEDIA, T_MACRO = 0x20, 0x21, 0x10, 0x30, 0x70
+MACRO_MODES = {0: "repeat N times", 2: "loop while button held", 3: "loop until any click"}   # 2/3 labels from vendor strings, unverified
 DEFAULT_KEYS = [
     (T_MOUSE, 1, 0, 0), (T_MOUSE, 2, 0, 0), (T_MOUSE, 4, 0, 0),
     (T_MOUSE, 8, 0, 0), (T_MOUSE, 16, 0, 0), (T_SPECIAL, 0x55, 0, 0),
@@ -142,8 +143,47 @@ def build_keys_write(entries) -> bytes:
     if len(entries) != len(BUTTONS): raise ProtocolError("need 6 button entries")
     for e in entries:
         if len(e) != 4 or not all(0 <= x <= 255 for x in e): raise ProtocolError("bad entry")
-        if e[0] not in (T_MOUSE, T_SPECIAL, T_KEY, T_MEDIA): raise ProtocolError("bad action type")
+        if e[0] not in (T_MOUSE, T_SPECIAL, T_KEY, T_MEDIA, T_MACRO): raise ProtocolError("bad action type")
+        if e[0] == T_MACRO and (e[1] > 31 or e[3] not in MACRO_MODES or (e[3] == 0 and not 1 <= e[2] <= 255)):
+            raise ProtocolError("bad macro binding (index 0..31, mode 0|2|3, count 1..255)")
     table = list(entries) + DEFAULT_KEYS[6:]
     payload = bytearray([0x20, 0, 0, 0])
     for e in table: payload += bytes(e)
     return frame(CMD_KEYS_WRITE, T_READ, bytes(payload))
+
+
+# ---- macros -------------------------------------------------------------
+# Image layout (vendor web tool): 64-byte index (32 x u16 LE offset, 0 = empty) then 4-byte events:
+#   delay_ms u16 LE | flags | code     flags: 0x40 key/button down, 0x03 mouse / 0x02 key, 0x80 last event
+MACRO_MAX, MACRO_IMAGE_MAX, MACRO_CHUNK = 32, 4096, 56
+CMD_MACRO_WRITE, CMD_MACRO_COMMIT = 0x0D, 0x10
+
+
+def build_macro_image(macros) -> bytes:
+    """macros: list (<=32) of event lists; event = dict(kind='key'|'mouse', code, down, delay_ms)."""
+    if len(macros) > MACRO_MAX: raise ProtocolError("max 32 macros")
+    img = bytearray(64); body = bytearray()
+    for i, evs in enumerate(macros):
+        if not evs: continue
+        off = 64 + len(body)
+        img[2 * i], img[2 * i + 1] = off & 255, off >> 8
+        for j, e in enumerate(evs):
+            if e["kind"] not in ("key", "mouse") or not 0 <= e["code"] <= 255: raise ProtocolError("bad macro event")
+            delay = max(0, min(65535, int(e.get("delay_ms", 0))))
+            fl = (0x40 if e["down"] else 0) | (0x03 if e["kind"] == "mouse" else 0x02) | (0x80 if j == len(evs) - 1 else 0)
+            body += bytes([delay & 255, delay >> 8, fl, e["code"]])
+    img += body
+    if len(img) > MACRO_IMAGE_MAX: raise ProtocolError("macro memory full (4096 bytes)")
+    return bytes(img)
+
+
+def macro_frames(image: bytes):
+    """Frames exactly as the vendor tool sends them (it leaves chk=0 on chunks; device ignores chk)."""
+    out = []
+    for off in range(0, len(image), MACRO_CHUNK):
+        ch = image[off:off + MACRO_CHUNK]
+        d = bytearray(frame(CMD_MACRO_WRITE, 0, bytes([len(ch), off & 255, off >> 8, 0]) + ch)); d[3] = 0
+        out.append(bytes(d))
+    c = bytearray(frame(CMD_MACRO_COMMIT, T_READ, bytes([0, 0, 0, 5]))); c[3] = 0x22
+    out.append(bytes(c))
+    return out
