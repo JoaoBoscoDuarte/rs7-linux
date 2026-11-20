@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=RS7 Mouse Config
+Comment=Configure the Smailwolf RS7 mouse
+Exec=rs7 gui
+Terminal=false
+Categories=Settings;HardwareSettings;

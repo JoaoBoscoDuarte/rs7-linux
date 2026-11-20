@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rs7-linux"
+version = "0.1.0"
+description = "Unofficial Linux configurator for the Smailwolf RS7 gaming mouse (YJX chip): DPI, polling rate, buttons, lighting"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+keywords = ["linux", "hid", "hidraw", "gaming-mouse", "mouse-configuration", "smailwolf", "rs7", "yjx"]
+classifiers = ["Operating System :: POSIX :: Linux", "Topic :: System :: Hardware", "License :: OSI Approved :: MIT License"]
+
+[project.scripts]
+rs7 = "rs7.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/JoaoBoscoDuarte/rs7-linux"
+
+[tool.setuptools]
+packages = ["rs7"]
+
+[tool.setuptools.package-data]
+rs7 = ["web/*"]
