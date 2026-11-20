@@ -1,8 +1,8 @@
 const I18N={
 en:{
 "err.title":"Mouse not available","err.retry":"Retry","apply":"Apply","ok":"OK","cancel":"Cancel",
-"tab.buttons":"Buttons","tab.dpi":"DPI","tab.perf":"Performance","tab.macro":"Macros","tab.light":"Lighting","tab.settings":"Settings","tab.about":"About",
-"btn.title":"Button mapping","btn.sub":"Click a button on the mouse, choose its action, then apply.","btn.button":"Button","btn.action":"Action","btn.mouse":"Mouse","btn.key":"Key","btn.mods":"Modifiers","btn.media":"Media","btn.macro":"Macro",
+"tab.home":"Home","tab.buttons":"Buttons","tab.dpi":"DPI","tab.perf":"Performance","tab.macro":"Macros","tab.light":"Lighting","tab.settings":"Settings","tab.about":"About",
+"home.title":"Live mouse view","home.sub":"Click, scroll and move inside this window: the mouse lights up and the test pad draws your movement.","home.reset":"Reset counters","home.pos":"Position","home.delta":"Δ per move","home.speed":"Speed","home.rate":"Event rate","home.hint":"Move inside the square to test tracking. Rate is the browser’s estimate of how many position updates the mouse delivers per second; the DPI button is handled by the mouse itself and is not visible here.","home.click":"clicks","home.dpi":"DPI","btn.title":"Button mapping","btn.sub":"Click a button on the mouse, choose its action, then apply.","btn.button":"Button","btn.action":"Action","btn.mouse":"Mouse","btn.key":"Key","btn.mods":"Modifiers","btn.media":"Media","btn.macro":"Macro",
 "btn.apply":"Apply all buttons","btn.reset":"Reset to defaults","btn.warn":"Changes are staged until you apply. Keep Left click mapped so you can still use the mouse.",
 "btn.names":["Left click","Right click","Middle click","Back","Forward","DPI button"],
 "act.mouse":"Mouse button","act.dpi":"DPI loop","act.wup":"Wheel up","act.wdn":"Wheel down","act.key":"Keyboard key","act.media":"Media","act.macro":"Macro",
@@ -21,8 +21,8 @@ en:{
 "bat":"battery","fw":"firmware","applied.dpi":"DPI applied","applied.perf":"Performance applied","applied.btn":"Buttons applied","reset.btn":"Buttons reset"},
 "pt-BR":{
 "err.title":"Mouse indisponível","err.retry":"Tentar novamente","apply":"Aplicar","ok":"OK","cancel":"Cancelar",
-"tab.buttons":"Botões","tab.dpi":"DPI","tab.perf":"Desempenho","tab.macro":"Macros","tab.light":"Iluminação","tab.settings":"Ajustes","tab.about":"Sobre",
-"btn.title":"Mapeamento de botões","btn.sub":"Clique em um botão do mouse, escolha a ação e aplique.","btn.button":"Botão","btn.action":"Ação","btn.mouse":"Mouse","btn.key":"Tecla","btn.mods":"Modificadores","btn.media":"Mídia","btn.macro":"Macro",
+"tab.home":"Início","tab.buttons":"Botões","tab.dpi":"DPI","tab.perf":"Desempenho","tab.macro":"Macros","tab.light":"Iluminação","tab.settings":"Ajustes","tab.about":"Sobre",
+"home.title":"Visão ao vivo do mouse","home.sub":"Clique, role e mova dentro desta janela: o mouse acende e o quadrado de teste desenha o seu movimento.","home.reset":"Zerar contadores","home.pos":"Posição","home.delta":"Δ por movimento","home.speed":"Velocidade","home.rate":"Taxa de eventos","home.hint":"Mova dentro do quadrado para testar o rastreamento. A taxa é a estimativa do navegador de quantas atualizações de posição o mouse entrega por segundo; o botão de DPI é tratado pelo próprio mouse e não aparece aqui.","home.click":"cliques","home.dpi":"DPI","btn.title":"Mapeamento de botões","btn.sub":"Clique em um botão do mouse, escolha a ação e aplique.","btn.button":"Botão","btn.action":"Ação","btn.mouse":"Mouse","btn.key":"Tecla","btn.mods":"Modificadores","btn.media":"Mídia","btn.macro":"Macro",
 "btn.apply":"Aplicar todos os botões","btn.reset":"Restaurar padrão","btn.warn":"As mudanças ficam pendentes até você aplicar. Mantenha o clique esquerdo mapeado para continuar usando o mouse.",
 "btn.names":["Clique esquerdo","Clique direito","Clique do meio","Voltar","Avançar","Botão de DPI"],
 "act.mouse":"Botão do mouse","act.dpi":"Alternar DPI","act.wup":"Roda para cima","act.wdn":"Roda para baixo","act.key":"Tecla do teclado","act.media":"Mídia","act.macro":"Macro",
