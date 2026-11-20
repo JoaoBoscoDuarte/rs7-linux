@@ -76,7 +76,8 @@ const KEYS=[...Array(26)].map((_,i)=>[String.fromCharCode(65+i),4+i]).concat([..
 const MODS=[["Ctrl",1],["Shift",2],["Alt",4],["Super",8]];
 function toast(m,e){const t=$("toast");t.textContent=m;t.className="show"+(e?" err":"");clearTimeout(t._t);t._t=setTimeout(()=>t.className="",2600)}
 async function api(path,body){const r=await fetch(path,body===undefined?{}:{method:"POST",headers:{"Content-Type":"application/json","X-RS7-Token":TOKEN},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
-function opts(el,list,f){el.innerHTML=list.map((x,i)=>`<option value="${i}">${f(x)}</option>`).join("")}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>"&#"+c.charCodeAt(0)+";");
+function opts(el,list,f){el.innerHTML=list.map((x,i)=>`<option value="${i}">${esc(f(x))}</option>`).join("")}
 function seg(el,items,get,set){el.innerHTML="";items.forEach(([lab,val])=>{const b=document.createElement("button");b.textContent=lab;b.className=get()===val?"on":"";b.onclick=()=>{set(val);[...el.children].forEach(c=>c.className="");b.className="on"};el.appendChild(b)})}
 let P={};
 function render(){const c=S.config;$("fw").textContent="firmware "+S.info.fw+" · "+S.info.date;$("bat").textContent="battery "+S.info.percent+"%"+(S.info.charging?" ⚡":"");
@@ -120,7 +121,7 @@ for(let i=0;i<26;i++)HID["Key"+String.fromCharCode(65+i)]=4+i;for(let i=1;i<=9;i
 const HIDN={};for(const k in HID)HIDN[HID[k]]=k.replace(/^Key|^Digit/,"");
 const MBTN={1:"Left",2:"Right",4:"Middle",8:"Back",16:"Forward"};
 const cur=()=>MAC[mi];
-function mRender(){const l=$("mlist");l.innerHTML=MAC.map((m,i)=>`<option value="${i}">${i+1}. ${m.name||"macro"}</option>`).join("")||"<option>(none)</option>";l.value=mi;
+function mRender(){const l=$("mlist");l.innerHTML=MAC.map((m,i)=>`<option value="${i}">${i+1}. ${esc(m.name||"macro")}</option>`).join("")||"<option>(none)</option>";l.value=mi;
  opts($("amacro"),MAC.length?MAC:[{name:"(none)"}],m=>m.name);
  const m=cur();$("mname").value=m?m.name:"";const t=$("evs");t.innerHTML="";if(!m)return;
  m.events.forEach((e,i)=>{const r=t.insertRow();r.innerHTML=`<td>${i+1}</td><td><select data-k="kind"><option>key</option><option>mouse</option></select></td><td><select data-k="code">${e.kind=="mouse"?Object.entries(MBTN).map(([c,n])=>`<option value="${c}">${n}</option>`).join(""):Object.entries(HIDN).map(([c,n])=>`<option value="${c}">${n}</option>`).join("")}</select></td><td><select data-k="down"><option value="1">down</option><option value="0">up</option></select></td><td><input type="number" data-k="delay_ms" min="0" max="65535" style="width:90px"> ms</td><td><button class="sec" onclick="mRm(${i})">✕</button></td>`;

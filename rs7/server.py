@@ -61,6 +61,7 @@ class Handler(BaseHTTPRequestHandler):
             if method == "POST" and path == "/api/keys/reset": return self._send(200, m.reset_keys())
             if method == "POST" and path == "/api/macros":
                 macros = body["macros"]
+                if not all(isinstance(x.get("name"), str) and len(x["name"]) <= 40 for x in macros): raise ValueError("macro name: string up to 40 chars")
                 m.upload_macros([x["events"] for x in macros])   # validates; raises before saving
                 store.save(macros); return self._send(200, {"macros": macros})
             if method == "POST" and path == "/api/light": return self._send(200, {"light_mode": m.set_light(int(body["mode"]))})
