@@ -88,10 +88,15 @@ addEventListener("keydown",e=>recEv(e,true));addEventListener("keyup",e=>recEv(e
 $("mlist").onchange=e=>{mi=+e.target.value;mRender()};$("mname").oninput=e=>{if(cur()){cur().name=e.target.value;const o=$("mlist").options[mi];if(o)o.textContent=`${mi+1}. ${cur().name}`}};
 async function mSave(){try{await api("/api/macros",{macros:MAC});toast(t("mac.uploaded"));mRender()}catch(e){toast(e.message,1)}}
 // ---------- home: live mouse view + movement pad
-const HB={0:"h0",2:"h1",1:"h2",3:"h3",4:"h4"},HN={0:"L",2:"R",1:"M",3:"B",4:"F"};let counts={0:0,2:0,1:0,3:0,4:0,up:0,dn:0};
+const HB={0:"h0",2:"h1",1:"h2",3:"h3",4:"h4"},HN={0:"L",2:"R",1:"M",3:"B",4:"F"};let counts={0:0,2:0,1:0,3:0,4:0,up:0,dn:0,dpi:0};
 const homeOn=()=>$("t-home").classList.contains("on");
-function homeRender(){$("counts").innerHTML=Object.entries(HN).map(([b,n])=>`<span>${n} <b>${counts[b]}</b></span>`).join("")+`<span>▲ <b>${counts.up}</b></span><span>▼ <b>${counts.dn}</b></span>`;
+function homeRender(){$("counts").innerHTML=Object.entries(HN).map(([b,n])=>`<span>${n} <b>${counts[b]}</b></span>`).join("")+`<span>▲ <b>${counts.up}</b></span><span>▼ <b>${counts.dn}</b></span><span>DPI <b>${counts.dpi}</b></span>`;
  if(S){const c=S.config;$("hdpi").textContent=c.dpis[c.dpi_index]+" "+t("home.dpi")}}
+// DPI button is handled by the mouse (no click reaches the OS): detect it by watching the active DPI stage.
+let dpiBusy=false,dpiFlash;
+setInterval(async()=>{if(!S||!homeOn()||document.hidden||dpiBusy)return;dpiBusy=true;
+ try{const r=await api("/api/status");if(r.dpi_index!==S.config.dpi_index){S.config.dpi_index=r.dpi_index;S.config.dpis=r.dpis;counts.dpi++;lit("h5",true);clearTimeout(dpiFlash);dpiFlash=setTimeout(()=>lit("h5",false),900);homeRender()}}catch(e){}
+ dpiBusy=false},1200);
 function homeReset(){for(const k in counts)counts[k]=0;homeRender()}
 function lit(id,on){$(id).classList.toggle("on",on)}
 addEventListener("mousedown",e=>{if(!homeOn()||!HB[e.button])return;lit(HB[e.button],true);counts[e.button]++;homeRender();if(e.button>2)e.preventDefault()},true);

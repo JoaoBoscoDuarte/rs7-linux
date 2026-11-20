@@ -72,6 +72,8 @@ class Handler(BaseHTTPRequestHandler):
                                         "keys": m.keys(), "macros": store.load(), "buttons": p.BUTTONS, "token": Handler.token,
                                         "meta": {"rates": p.REPORT_RATES, "sleep": p.SLEEP_MINUTES,
                                                  "lights": p.LIGHT_MODES, "sensor_bits": p.SENSOR_BITS}})
+            if method == "GET" and path == "/api/status":      # light poll for the Home view (DPI stage changes)
+                c = m.config(); return self._send(200, {"dpi_index": c["dpi_index"], "dpis": c["dpis"]})
             if method == "POST" and path == "/api/profiles":
                 st = self._profiles(m); act = body.get("action")
                 snap = m.snapshot(store.load()) if act in ("add", "save") else None
