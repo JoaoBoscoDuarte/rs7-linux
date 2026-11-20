@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.2
+- Home: DPI button added to the mouse view (between L and R, behind the wheel). It flashes and the DPI label updates when the mouse changes DPI stage (light `/api/status` poll about once a second while Home is open); DPI change counter added.
+
 ## 0.4.1
 - Fix: Back/Forward side buttons were drawn swapped in the mouse view (Forward is the front one, Back the rear one) on Home and Buttons tabs.
 
