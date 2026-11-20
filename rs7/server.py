@@ -3,7 +3,7 @@ from __future__ import annotations
 import json, os, threading, webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import protocol as p, store
+from . import __version__, profiles, protocol as p, store
 from .hid import DeviceNotFound, Mouse
 
 WEB = os.path.join(os.path.dirname(__file__), "web")
@@ -21,6 +21,21 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(code); self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body))); self.send_header("Cache-Control", "no-store")
         self.end_headers(); self.wfile.write(body)
+
+    def _profiles(self, m):
+        st = profiles.load_profiles()
+        if st is None:
+            st = profiles.seed(m.snapshot(store.load())); profiles.save_profiles(st)
+        return st
+
+    def _autosave(self, m):
+        """Every change made through the app is stored in the active profile."""
+        try:
+            st = profiles.load_profiles()
+            if st:
+                t = next(x for x in st["profiles"] if x["id"] == st["active"])
+                t.update(m.snapshot(store.load())); profiles.save_profiles(st)
+        except (OSError, StopIteration, p.ProtocolError, KeyError): pass
 
     def _mouse(self):
         if Handler.mouse is None: Handler.mouse = Mouse()
@@ -52,19 +67,39 @@ class Handler(BaseHTTPRequestHandler):
         try:
             m = self._mouse(); path = self.path.split("?")[0]
             if method == "GET" and path == "/api/state":
-                return self._send(200, {"info": m.info(), "config": m.config(),
+                return self._send(200, {"info": m.info(), "config": m.config(), "version": __version__,
+                                        "profiles": self._profiles(m), "settings": {**profiles.load_settings(), "tray_supported": __import__("rs7.tray", fromlist=["x"]).watcher_available()},
                                         "keys": m.keys(), "macros": store.load(), "buttons": p.BUTTONS, "token": Handler.token,
                                         "meta": {"rates": p.REPORT_RATES, "sleep": p.SLEEP_MINUTES,
                                                  "lights": p.LIGHT_MODES, "sensor_bits": p.SENSOR_BITS}})
-            if method == "POST" and path == "/api/config": return self._send(200, m.set_config(body))
-            if method == "POST" and path == "/api/keys": return self._send(200, m.set_keys([tuple(e) for e in body["keys"]]))
-            if method == "POST" and path == "/api/keys/reset": return self._send(200, m.reset_keys())
+            if method == "POST" and path == "/api/profiles":
+                st = self._profiles(m); act = body.get("action")
+                snap = m.snapshot(store.load()) if act in ("add", "save") else None
+                profiles.save_profiles(profiles.edit(st, act, body, snap)); return self._send(200, st)
+            if method == "POST" and path == "/api/profiles/apply":
+                st = self._profiles(m); t = next((x for x in st["profiles"] if x["id"] == body.get("id")), None)
+                if t is None: raise ValueError("unknown profile")
+                m.apply_profile(t, store.load()); st["active"] = t["id"]; profiles.save_profiles(st)
+                return self._send(200, {"profiles": st, "config": m.config(), "keys": m.keys()})
+            if method == "POST" and path == "/api/settings":
+                s = profiles.save_settings(body)
+                if "tray" in body:
+                    from . import tray
+                    tray.set_autostart(s["tray"]); (tray.start if s["tray"] else tray.stop)()
+                return self._send(200, s)
+            if method == "POST" and path == "/api/config":
+                r = m.set_config(body); self._autosave(m); return self._send(200, r)
+            if method == "POST" and path == "/api/keys":
+                r = m.set_keys([tuple(e) for e in body["keys"]]); self._autosave(m); return self._send(200, r)
+            if method == "POST" and path == "/api/keys/reset":
+                r = m.reset_keys(); self._autosave(m); return self._send(200, r)
             if method == "POST" and path == "/api/macros":
                 macros = body["macros"]
                 if not all(isinstance(x.get("name"), str) and len(x["name"]) <= 40 for x in macros): raise ValueError("macro name: string up to 40 chars")
                 m.upload_macros([x["events"] for x in macros])   # validates; raises before saving
                 store.save(macros); return self._send(200, {"macros": macros})
-            if method == "POST" and path == "/api/light": return self._send(200, {"light_mode": m.set_light(int(body["mode"]))})
+            if method == "POST" and path == "/api/light":
+                r = {"light_mode": m.set_light(int(body["mode"]))}; self._autosave(m); return self._send(200, r)
             self._send(404, {"error": "unknown endpoint"})
         except DeviceNotFound as e:
             self._send(503, {"error": str(e)})

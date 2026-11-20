@@ -1,10 +1,13 @@
 """hidraw transport for the RS7 vendor config interface (USB interface 2)."""
 from __future__ import annotations
-import glob, os, select, threading
+import fcntl, glob, os, select, tempfile, threading
 
 from . import protocol as p
 
 IDS = ("A8A4:2255", "A8A5:2255")        # USB cable, 2.4G dongle
+
+
+LOCK = os.path.join(os.environ.get("XDG_RUNTIME_DIR") or tempfile.gettempdir(), "rs7-%d.lock" % os.getuid())
 
 
 class DeviceNotFound(Exception):
@@ -27,7 +30,8 @@ class Mouse:
     def close(self): os.close(self.fd)
 
     def xfer(self, req: bytes) -> bytes:
-        with self.lock:
+        with self.lock, open(LOCK, "w") as lf:      # cross-process: server and tray must not interleave frames
+            fcntl.flock(lf, fcntl.LOCK_EX)
             while select.select([self.fd], [], [], 0.03)[0]:
                 os.read(self.fd, 64)            # drop stale input
             os.write(self.fd, req)
@@ -70,3 +74,13 @@ class Mouse:
         """Write the whole macro memory (vendor behaviour: image is always rewritten in full)."""
         for f in p.macro_frames(p.build_macro_image(macros)):
             self.xfer(f)
+
+    def snapshot(self, macros):
+        from . import profiles
+        return profiles.snapshot(self.config(), self.keys(), macros)
+
+    def apply_profile(self, prof: dict, macros):
+        from . import profiles
+        keys = profiles.resolve_keys(prof["keys"], macros)      # validate before touching the mouse
+        self.set_config(prof["config"])
+        self.set_keys(keys)

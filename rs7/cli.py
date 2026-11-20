@@ -14,12 +14,17 @@ def main(argv=None) -> int:
     s = sub.add_parser("set"); s.add_argument("field"); s.add_argument("value")
     s = sub.add_parser("light"); s.add_argument("mode", choices=p.LIGHT_MODES)
     s = sub.add_parser("macro"); s.add_argument("action", choices=["list", "upload"]); s.add_argument("file", nargs="?")
+    s = sub.add_parser("profile"); s.add_argument("action", choices=["list", "apply"]); s.add_argument("name", nargs="?")
+    sub.add_parser("tray")
     s = sub.add_parser("gui"); s.add_argument("--port", type=int, default=7777); s.add_argument("--no-browser", action="store_true")
     a = ap.parse_args(argv)
     try:
         if a.cmd == "gui":
             from .server import serve
             return serve(a.port, not a.no_browser)
+        if a.cmd == "tray":
+            from .tray import run
+            return run()
         m = Mouse()
         if a.cmd == "info": out = m.info()
         elif a.cmd == "show": out = m.config()
@@ -27,6 +32,14 @@ def main(argv=None) -> int:
         elif a.cmd == "dpi":
             d = m.config()["dpis"]; d[a.slot - 1] = a.value
             out = m.set_config({"dpis": d})
+        elif a.cmd == "profile":
+            from . import profiles, store
+            st = profiles.load_profiles() or profiles.seed(m.snapshot(store.load()))
+            if a.action == "list": out = [{"name": x["name"], "active": x["id"] == st["active"]} for x in st["profiles"]]
+            else:
+                t = next((x for x in st["profiles"] if x["name"] == a.name), None)
+                if t is None: raise p.ProtocolError("unknown profile: %r" % a.name)
+                m.apply_profile(t, store.load()); st["active"] = t["id"]; profiles.save_profiles(st); out = m.config()
         elif a.cmd == "macro":
             from . import store
             if a.action == "list": out = store.load()
