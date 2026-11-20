@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.1
+- 3D mouse redone from the product photos: concave waist, rounder narrower rear, hump ahead of the middle, arched seam behind the main buttons, centre slit with wheel + DPI pill, two side pills, satin finish, environment reflections, wheel glow ring, 3/4 front-left default view. Still an approximation of the RS7.
+
 ## 0.5.0
 - Home: 3D mouse (three.js vendored, procedural model): drag to rotate, scroll to zoom, auto-rotate, reset view; buttons, wheel and DPI button light up in 3D. 2D/3D switch, automatic fallback to the SVG when WebGL is unavailable. The model approximates the RS7 shape; a real .glb can replace the geometry.
 
