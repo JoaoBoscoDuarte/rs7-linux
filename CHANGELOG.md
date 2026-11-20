@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.0
+- Home: 3D mouse (three.js vendored, procedural model): drag to rotate, scroll to zoom, auto-rotate, reset view; buttons, wheel and DPI button light up in 3D. 2D/3D switch, automatic fallback to the SVG when WebGL is unavailable. The model approximates the RS7 shape; a real .glb can replace the geometry.
+
 ## 0.4.2
 - Home: DPI button added to the mouse view (between L and R, behind the wheel). It flashes and the DPI label updates when the mouse changes DPI stage (light `/api/status` poll about once a second while Home is open); DPI change counter added.
 

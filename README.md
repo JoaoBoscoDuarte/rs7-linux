@@ -16,14 +16,14 @@ The vendor only ships a Windows driver and a Chrome/Edge WebHID page; this proje
 | Lighting mode (off / steady / breathing) | verified |
 | Button remapping (mouse, keyboard keys + modifiers, media, DPI loop, disable) | verified (write + read-back) |
 | Macros (record/edit up to 32, bind to a button: repeat N / while held / until click) | upload + binding verified by read-back; the macro *playing* on a button press has not been checked on hardware yet |
-| Home: live mouse view (buttons and wheel light up as you click/scroll, click counters) + movement test pad with trail, speed and event-rate estimate | UI-tested with synthetic events; try it with your mouse |
+| Home: rotatable 3D mouse (drag to rotate, scroll to zoom; procedural approximation, 2D fallback) whose buttons/wheel light up as you click/scroll, click counters, DPI button flashes on stage change + movement test pad with trail, speed and event-rate estimate | UI-tested with synthetic events; try it with your mouse |
 | Profiles: 5 by default, `+` to add more (up to 20), rename/delete; every change is saved into the active profile | verified on hardware |
 | English + Português (Brasil), light/dark/auto theme | UI-tested |
 | Tray icon (battery %, profile switcher, open app) via StatusNotifierItem — GNOME, KDE, XFCE, Cinnamon, MATE… | registration + menu + profile switching verified on GNOME/Wayland; other desktops use the same standard protocol |
 | Per-stage DPI LED colours | not possible: tested, the firmware does not store them (the vendor web tool does not offer them either) |
 
 ## Screenshots
-![Home — live mouse view](docs/img/home-dark-en.png)
+![Home — 3D live mouse view](docs/img/home-3d-dark-en.png)
 
 Dark theme (Portuguese) and light theme (English) — language and theme are switchable in Settings.
 
@@ -64,4 +64,4 @@ See [docs/PROTOCOL.md](docs/PROTOCOL.md). Contributions (other firmware variants
 ## Development
 `python3 -m unittest discover -s tests -t .` — protocol tests run without hardware.
 
-License: MIT.
+License: MIT. The 3D view bundles [three.js](https://threejs.org) r170 (MIT) in `rs7/web/vendor/`, so the app works offline.
