@@ -45,7 +45,7 @@ dialog input{width:100%;margin:10px 0}dialog h3{margin:0}
 #toast.show{opacity:1}#toast.err{border-color:var(--bad);color:var(--bad)}
 @media(max-width:820px){#app{flex-direction:column}nav{flex-direction:row;width:auto;overflow-x:auto}nav button span{display:none}.mouse{grid-template-columns:1fr}}
 
-.home{display:grid;grid-template-columns:340px 1fr;gap:26px;align-items:start}
+.home{display:grid;grid-template-columns:400px 1fr;gap:26px;align-items:start}
 .mousebox.big{flex-direction:column;align-items:center;gap:12px}
 svg .lit{fill:transparent;stroke:none;transition:fill .08s,filter .08s}svg .lit.on{fill:var(--acc);filter:drop-shadow(0 0 10px var(--acc)) drop-shadow(0 0 22px var(--acc))}
 svg .arrow{fill:var(--line)}svg .arrow.on{fill:var(--acc)}svg .dpitxt{fill:#59616f;font-size:16px;font-weight:700;text-anchor:middle}
