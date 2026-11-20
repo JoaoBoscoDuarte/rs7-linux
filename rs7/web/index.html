@@ -1,150 +1,73 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RS7 Linux</title>
-<style>
-:root{--bg:#0e1013;--panel:#171a1f;--panel2:#1f242b;--line:#2c333c;--fg:#e6e9ee;--mut:#8b95a3;--acc:#4ade80;--acc2:#22c55e;--bad:#f87171}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif}
-header{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
-header h1{font-size:18px;margin:0}header .sp{flex:1}.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px 12px;color:var(--mut);font-size:13px}
-nav{display:flex;gap:4px;padding:0 24px;border-bottom:1px solid var(--line)}
-nav button{background:none;border:0;color:var(--mut);padding:12px 18px;font-size:15px;cursor:pointer;border-bottom:2px solid transparent}
-nav button.on{color:var(--fg);border-color:var(--acc)}
-main{max-width:980px;margin:24px auto;padding:0 24px}section{display:none}section.on{display:block}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
-.card h2{margin:0 0 4px;font-size:16px}.card p{margin:0 0 14px;color:var(--mut);font-size:13px}
-.row{display:flex;align-items:center;gap:12px;margin:10px 0;flex-wrap:wrap}.row label{min-width:110px;color:var(--mut)}
-input,select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}
-input[type=range]{padding:0;accent-color:var(--acc);flex:1;min-width:160px}input[type=number]{width:100px}
-button.pri{background:var(--acc2);color:#04130a;border:0;border-radius:8px;padding:9px 20px;font-weight:600;cursor:pointer}
-button.sec{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:9px 16px;cursor:pointer}
-.seg{display:flex;gap:6px}.seg button{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 16px;cursor:pointer}
-.seg button.on{border-color:var(--acc);color:var(--acc)}
-.mouse{display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:start}
-svg .hot{fill:var(--panel2);stroke:var(--line);stroke-width:2;cursor:pointer}svg .hot:hover,svg .hot.on{fill:#1c3a29;stroke:var(--acc)}
-svg text{fill:var(--mut);font-size:11px;pointer-events:none}
-.mods label{min-width:0;margin-right:8px;color:var(--fg)}
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:10px 18px;border-radius:10px;opacity:0;transition:.2s;pointer-events:none}
-#toast.show{opacity:1}#toast.err{border-color:var(--bad);color:var(--bad)}
-.dpi{display:grid;grid-template-columns:28px 1fr 100px;gap:12px;align-items:center;margin:10px 0}
-.dpi.cur .n{color:var(--acc);font-weight:700}.dpi.off{opacity:.4}
-.warn{color:var(--mut);font-size:12px}#err{display:none;margin:60px auto;max-width:520px;text-align:center}
-@media(max-width:700px){.mouse{grid-template-columns:1fr}}
-</style></head><body>
-<header><h1>RS7 <span style="color:var(--acc)">Linux</span></h1><span class="chip" id="fw">—</span><span class="chip" id="bat">—</span><span class="sp"></span><span class="chip">unofficial · not affiliated with Smailwolf</span></header>
-<div id="err" class="card"><h2>Mouse not available</h2><p id="errmsg"></p><button class="pri" onclick="load()">Retry</button></div>
-<div id="app" style="display:none">
-<nav id="tabs"></nav><main>
-<section id="t-buttons"><div class="card"><h2>Button mapping</h2><p>Click a button on the mouse, choose its action, then Apply.</p>
-<div class="mouse"><svg viewBox="0 0 260 380" width="260"><path d="M50 150C50 60 90 20 130 20s80 40 80 130v130c0 60-40 90-80 90s-80-30-80-90z" fill="#12151a" stroke="#2c333c" stroke-width="2"/>
-<path id="b0" class="hot" d="M54 140C54 70 88 30 126 26V140z"/><path id="b1" class="hot" d="M134 26c38 4 72 44 72 114H134z"/>
-<rect id="b2" class="hot" x="119" y="52" width="22" height="50" rx="10"/><rect id="b3" class="hot" x="36" y="170" width="28" height="36" rx="8"/><rect id="b4" class="hot" x="36" y="212" width="28" height="36" rx="8"/><rect id="b5" class="hot" x="119" y="116" width="22" height="26" rx="8"/>
-<text x="130" y="82" text-anchor="middle">scroll</text></svg>
-<div><div class="row"><label>Button</label><b id="bname"></b></div>
-<div class="row"><label>Action</label><select id="atype"></select></div>
-<div class="row" id="rmouse"><label>Mouse</label><select id="amouse"></select></div>
-<div class="row" id="rkey"><label>Key</label><select id="akey"></select></div>
-<div class="row mods" id="rmods"><label>Modifiers</label><span id="mods"></span></div>
-<div class="row" id="rmacro"><label>Macro</label><select id="amacro"></select> <select id="mmode"></select> <input type="number" id="mcount" min="1" max="255" value="1" style="width:70px"></div>
-<div class="row" id="rmedia"><label>Media</label><select id="amedia"></select></div>
-<div class="row"><button class="pri" onclick="applyKeys()">Apply all buttons</button><button class="sec" onclick="resetKeys()">Reset to defaults</button></div>
-<p class="warn">Changes are staged until you press Apply. Keep Left click mapped so you can still use the mouse.</p></div></div></div></section>
-<section id="t-dpi"><div class="card"><h2>DPI stages</h2><p>Up to 6 stages cycled by the DPI button. Radio = active stage.</p><div id="dpis"></div>
-<div class="row"><label>Enabled stages</label><select id="dcount"></select></div><div class="row"><button class="pri" onclick="applyDpi()">Apply</button></div></div></section>
-<section id="t-perf"><div class="card"><h2>Performance</h2><p>Applied immediately.</p>
-<div class="row"><label>Polling rate</label><select id="rate"></select><span class="warn">USB cable mode may be locked to 1000 Hz by firmware</span></div>
-<div class="row"><label>Lift-off distance</label><div class="seg" id="lod"></div></div>
-<div class="row"><label>Debounce (ms)</label><input type="number" id="deb" min="0" max="20"></div>
-<div class="row"><label>Sleep after</label><select id="sleep"></select></div>
-<div class="row"><label>Scroll</label><div class="seg" id="scroll"></div></div>
-<div class="row"><label>E-sports mode</label><input type="checkbox" id="esp"><span class="warn">lower latency, more power</span></div>
-<div class="row"><label>Sensor</label><span><label><input type="checkbox" data-s="ripple"> Ripple control</label> <label><input type="checkbox" data-s="angle_snap"> Angle snap</label> <label><input type="checkbox" data-s="motion_sync"> Motion sync</label></span></div>
-<div class="row"><button class="pri" onclick="applyPerf()">Apply</button></div></div></section>
-<section id="t-macro"><div class="card"><h2>Macros</h2><p>Up to 32 macros, 4 KiB total. Saved in <code>~/.config/rs7-linux/macros.json</code> and uploaded to the mouse; then assign one to a button in the Buttons tab.</p>
-<div class="row"><label>Macro</label><select id="mlist"></select><button class="sec" onclick="mNew()">New</button><button class="sec" onclick="mDel()">Delete</button></div>
-<div class="row"><label>Name</label><input id="mname"></div>
-<div class="row"><label>Record</label><button class="sec" id="rec" onclick="mRec()">● Start recording</button><span class="warn">captures keys typed in this page, with timing</span></div>
-<table id="evs" style="width:100%;border-collapse:collapse"></table>
-<div class="row"><button class="sec" onclick="mAdd()">+ Key tap</button><button class="sec" onclick="mClear()">Clear</button><button class="pri" onclick="mSave()">Save &amp; upload to mouse</button></div></div></section>
-<section id="t-light"><div class="card"><h2>Lighting</h2><p>Mode (the RS7 firmware exposes off / steady / breathing).</p><div class="seg" id="light"></div></div></section>
-</main></div><div id="toast"></div>
-<script>
-const $=id=>document.getElementById(id);let S=null,TOKEN="",sel=0,keys=[];
-const BN=["Left click","Right click","Middle click","Back","Forward","DPI button"];
-const MOUSE=[["Left click",1],["Right click",2],["Middle click",4],["Back",8],["Forward",16],["Disabled",0]];
-const MEDIA=[["Volume +",233,0],["Volume −",234,0],["Mute",226,0],["Play/Pause",205,0],["Stop",183,0],["Previous track",182,0],["Next track",181,0],["Homepage",35,2],["Browser refresh",39,2],["Browser back",36,2],["Browser forward",37,2],["Calculator",146,1],["My computer",148,1],["Mail",138,1]];
-const KEYS=[...Array(26)].map((_,i)=>[String.fromCharCode(65+i),4+i]).concat([..."1234567890"].map((c,i)=>[c,30+i]),[["Enter",40],["Esc",41],["Backspace",42],["Tab",43],["Space",44],["Delete",76],["Insert",73],["Home",74],["End",77],["Page Up",75],["Page Down",78],["Print Screen",70],["→",79],["←",80],["↓",81],["↑",82]],[...Array(12)].map((_,i)=>["F"+(i+1),58+i]));
-const MODS=[["Ctrl",1],["Shift",2],["Alt",4],["Super",8]];
-function toast(m,e){const t=$("toast");t.textContent=m;t.className="show"+(e?" err":"");clearTimeout(t._t);t._t=setTimeout(()=>t.className="",2600)}
-async function api(path,body){const r=await fetch(path,body===undefined?{}:{method:"POST",headers:{"Content-Type":"application/json","X-RS7-Token":TOKEN},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
-const esc=s=>String(s).replace(/[&<>"']/g,c=>"&#"+c.charCodeAt(0)+";");
-function opts(el,list,f){el.innerHTML=list.map((x,i)=>`<option value="${i}">${esc(f(x))}</option>`).join("")}
-function seg(el,items,get,set){el.innerHTML="";items.forEach(([lab,val])=>{const b=document.createElement("button");b.textContent=lab;b.className=get()===val?"on":"";b.onclick=()=>{set(val);[...el.children].forEach(c=>c.className="");b.className="on"};el.appendChild(b)})}
-let P={};
-function render(){const c=S.config;$("fw").textContent="firmware "+S.info.fw+" · "+S.info.date;$("bat").textContent="battery "+S.info.percent+"%"+(S.info.charging?" ⚡":"");
- // dpi
- $("dpis").innerHTML="";c.dpis.forEach((v,i)=>{const d=document.createElement("div");d.className="dpi"+(i==c.dpi_index?" cur":"")+(i>=c.dpi_count?" off":"");
-  d.innerHTML=`<span class="n"><input type="radio" name="cur" ${i==c.dpi_index?"checked":""}></span><input type="range" min="100" max="20000" step="50" value="${v}"><input type="number" min="100" max="20000" step="50" value="${v}">`;
-  const [r,rg,n]=[d.children[0].firstChild,d.children[1],d.children[2]];rg.oninput=()=>n.value=rg.value;n.onchange=()=>rg.value=n.value;r.onchange=()=>c.dpi_index=i;$("dpis").appendChild(d)});
- opts($("dcount"),[1,2,3,4,5,6],x=>x);$("dcount").value=c.dpi_count-1;
- // perf
- opts($("rate"),S.meta.rates,x=>x+" Hz");$("rate").value=c.report_rate;
- P.lod=c.lod;seg($("lod"),[["1 mm",1],["2 mm",2]],()=>P.lod,v=>P.lod=v);
- $("deb").value=c.debounce_ms==255?2:c.debounce_ms;
- opts($("sleep"),S.meta.sleep,x=>x==255?"Firmware default":x+" min");$("sleep").value=Math.max(0,S.meta.sleep.indexOf(c.sleep_min));
- P.scr=c.scroll_reverse;seg($("scroll"),[["Normal",false],["Reversed",true]],()=>P.scr,v=>P.scr=v);
- $("esp").checked=c.e_sports;document.querySelectorAll("[data-s]").forEach(e=>e.checked=!!(c.sensor_flag&S.meta.sensor_bits[e.dataset.s]));
- seg($("light"),S.meta.lights.map((l,i)=>[l[0].toUpperCase()+l.slice(1),i]),()=>c.light_mode,async v=>{try{await api("/api/light",{mode:v});c.light_mode=v;toast("Lighting set")}catch(e){toast(e.message,1)}});
-}
-function decode(e){const[t,a,b]=e;if(t==0x20)return["mouse",MOUSE.findIndex(m=>m[1]==a)];if(t==0x21&&a==0x55)return["dpi",0];if(t==0x21&&a==0x38)return[b==1?"wup":"wdn",0];
- if(t==0x10)return["key",KEYS.findIndex(k=>k[1]==b),a];if(t==0x70)return["macro",a,b,e[3]];if(t==0x30)return["media",MEDIA.findIndex(m=>m[1]==a&&m[2]==b)];return["mouse",5]}
-const ATYPES=[["mouse","Mouse button"],["dpi","DPI loop"],["wup","Wheel up"],["wdn","Wheel down"],["key","Keyboard key"],["media","Media"],["macro","Macro"]];
-function showSel(){const e=keys[sel],d=decode(e);for(let i=0;i<6;i++)$("b"+i).classList.toggle("on",i==sel);$("bname").textContent=BN[sel];
- $("atype").value=ATYPES.findIndex(a=>a[0]==d[0]);if(d[1]>=0){if(d[0]=="mouse")$("amouse").value=d[1];if(d[0]=="key")$("akey").value=d[1];if(d[0]=="media")$("amedia").value=d[1];if(d[0]=="macro"){$("amacro").value=d[1];$("mcount").value=d[2]||1;$("mmode").value=d[3]}}
- [...$("mods").querySelectorAll("input")].forEach((c,i)=>c.checked=d[0]=="key"&&!!(d[2]&MODS[i][1]));vis()}
-function vis(){const t=ATYPES[$("atype").value][0];$("rmouse").style.display=t=="mouse"?"":"none";$("rkey").style.display=$("rmods").style.display=t=="key"?"":"none";$("rmedia").style.display=t=="media"?"":"none";$("rmacro").style.display=t=="macro"?"":"none"}
-function stage(){const t=ATYPES[$("atype").value][0];let e;
- if(t=="mouse")e=[0x20,MOUSE[$("amouse").value][1],0,0];else if(t=="dpi")e=[0x21,0x55,0,0];else if(t=="wup")e=[0x21,0x38,1,0];else if(t=="wdn")e=[0x21,0x38,255,0];
- else if(t=="key"){let m=0;[...$("mods").querySelectorAll("input")].forEach((c,i)=>{if(c.checked)m|=MODS[i][1]});e=[0x10,m,KEYS[$("akey").value][1],0]}
- else if(t=="macro"){const md=+$("mmode").value;e=[0x70,+$("amacro").value,md==0?+$("mcount").value||1:1,md]}else{const x=MEDIA[$("amedia").value];e=[0x30,x[1],x[2],0]}keys[sel]=e}
-async function load(){try{S=await api("/api/state");TOKEN=S.token;$("err").style.display="none";$("app").style.display="";keys=S.keys.slice(0,6).map((e,i)=>e[0]==255?DEFK[i]:e);MAC=S.macros||[];render();mRender();showSel()}catch(e){$("app").style.display="none";$("err").style.display="";$("errmsg").textContent=e.message}}
-const DEFK=[[0x20,1,0,0],[0x20,2,0,0],[0x20,4,0,0],[0x20,8,0,0],[0x20,16,0,0],[0x21,0x55,0,0]];
-async function applyKeys(){stage();try{const r=await api("/api/keys",{keys:keys.slice(0,6)});keys=r.slice(0,6).map((e,i)=>e[0]==255?DEFK[i]:e);toast("Buttons applied");showSel()}catch(e){toast(e.message,1)}}
-async function resetKeys(){try{await api("/api/keys/reset",{});await load();toast("Buttons reset")}catch(e){toast(e.message,1)}}
-async function applyDpi(){const rows=[...document.querySelectorAll(".dpi")];const dpis=rows.map(r=>+r.children[2].value);const cur=rows.findIndex(r=>r.children[0].firstChild.checked);
- try{S.config=await api("/api/config",{dpis,dpi_count:+$("dcount").value+1,dpi_index:Math.max(0,cur)});render();toast("DPI applied")}catch(e){toast(e.message,1)}}
-async function applyPerf(){let sf=0;document.querySelectorAll("[data-s]").forEach(e=>{if(e.checked)sf|=S.meta.sensor_bits[e.dataset.s]});
- try{S.config=await api("/api/config",{report_rate:+$("rate").value,lod:P.lod,debounce_ms:+$("deb").value,sleep_min:S.meta.sleep[$("sleep").value],scroll_reverse:P.scr,e_sports:$("esp").checked,sensor_flag:sf});render();toast("Performance applied")}catch(e){toast(e.message,1)}}
-// ---- macros
-let MAC=[],mi=0,recording=false,lastT=0;
-const HID={Enter:40,Escape:41,Backspace:42,Tab:43,Space:44,ArrowRight:79,ArrowLeft:80,ArrowDown:81,ArrowUp:82,ControlLeft:0xE0,ShiftLeft:0xE1,AltLeft:0xE2,MetaLeft:0xE3,ControlRight:0xE4,ShiftRight:0xE5,AltRight:0xE6,Delete:76};
-for(let i=0;i<26;i++)HID["Key"+String.fromCharCode(65+i)]=4+i;for(let i=1;i<=9;i++)HID["Digit"+i]=29+i;HID.Digit0=39;for(let i=1;i<=12;i++)HID["F"+i]=57+i;
-const HIDN={};for(const k in HID)HIDN[HID[k]]=k.replace(/^Key|^Digit/,"");
-const MBTN={1:"Left",2:"Right",4:"Middle",8:"Back",16:"Forward"};
-const cur=()=>MAC[mi];
-function mRender(){const l=$("mlist");l.innerHTML=MAC.map((m,i)=>`<option value="${i}">${i+1}. ${esc(m.name||"macro")}</option>`).join("")||"<option>(none)</option>";l.value=mi;
- opts($("amacro"),MAC.length?MAC:[{name:"(none)"}],m=>m.name);
- const m=cur();$("mname").value=m?m.name:"";const t=$("evs");t.innerHTML="";if(!m)return;
- m.events.forEach((e,i)=>{const r=t.insertRow();r.innerHTML=`<td>${i+1}</td><td><select data-k="kind"><option>key</option><option>mouse</option></select></td><td><select data-k="code">${e.kind=="mouse"?Object.entries(MBTN).map(([c,n])=>`<option value="${c}">${n}</option>`).join(""):Object.entries(HIDN).map(([c,n])=>`<option value="${c}">${n}</option>`).join("")}</select></td><td><select data-k="down"><option value="1">down</option><option value="0">up</option></select></td><td><input type="number" data-k="delay_ms" min="0" max="65535" style="width:90px"> ms</td><td><button class="sec" onclick="mRm(${i})">✕</button></td>`;
-  const s=r.querySelectorAll("[data-k]");s[0].value=e.kind;s[1].value=e.code;s[2].value=e.down?1:0;s[3].value=e.delay_ms;
-  s.forEach(x=>x.onchange=()=>{const k=x.dataset.k;if(k=="kind"){e.kind=x.value;e.code=e.kind=="mouse"?1:4;mRender()}else if(k=="down")e.down=x.value=="1";else e[k]=+x.value})})}
-function mNew(){MAC.push({name:"Macro "+(MAC.length+1),events:[]});mi=MAC.length-1;mRender()}
-function mDel(){MAC.splice(mi,1);mi=Math.max(0,mi-1);mRender()}
-function mAdd(){if(!cur())mNew();cur().events.push({kind:"key",code:4,down:true,delay_ms:0},{kind:"key",code:4,down:false,delay_ms:30});mRender()}
-function mRm(i){cur().events.splice(i,1);mRender()}
-function mClear(){if(cur()){cur().events=[];mRender()}}
-function mRec(){if(!cur())mNew();recording=!recording;$("rec").textContent=recording?"■ Stop recording":"● Start recording";if(recording){cur().events=[];lastT=0;mRender();$("rec").focus()}}
-function recEv(ev,down){if(!recording||ev.repeat)return;const c=HID[ev.code];if(c===undefined)return;ev.preventDefault();const now=ev.timeStamp,E=cur().events;
- if(E.length)E[E.length-1].delay_ms=Math.min(65535,Math.round(now-lastT));lastT=now;E.push({kind:"key",code:c,down,delay_ms:0});mRender()}
-addEventListener("keydown",e=>recEv(e,true));addEventListener("keyup",e=>recEv(e,false));
-$("mlist").onchange=e=>{mi=+e.target.value;mRender()};$("mname").oninput=e=>{if(cur()){cur().name=e.target.value;const o=$("mlist").options[mi];if(o)o.textContent=`${mi+1}. ${cur().name}`}};
-async function mSave(){try{await api("/api/macros",{macros:MAC});toast("Macros uploaded");mRender()}catch(e){toast(e.message,1)}}
-// init static bits
-opts($("atype"),ATYPES,a=>a[1]);opts($("amouse"),MOUSE,m=>m[0]);opts($("akey"),KEYS,k=>k[0]);opts($("amedia"),MEDIA,m=>m[0]);$("mmode").innerHTML='<option value="0">repeat N times</option><option value="2">loop while held</option><option value="3">loop until any click</option>';
-$("mods").innerHTML=MODS.map(m=>`<label><input type="checkbox"> ${m[0]}</label>`).join("");
-$("atype").onchange=()=>{vis();stage()};["amouse","akey","amedia","amacro","mmode","mcount"].forEach(i=>$(i).onchange=stage);$("mods").onchange=stage;
-for(let i=0;i<6;i++)$("b"+i).onclick=()=>{stage();sel=i;showSel()};
-const TABS=[["buttons","Buttons"],["dpi","DPI"],["perf","Performance"],["macro","Macros"],["light","Lighting"]];
-$("tabs").innerHTML=TABS.map(([k,l],i)=>`<button data-k="${k}" class="${i?"":"on"}">${l}</button>`).join("");
-$("tabs").onclick=e=>{const k=e.target.dataset.k;if(!k)return;document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.k==k));document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id=="t-"+k))};
-$("t-buttons").classList.add("on");load();
-</script></body></html>
+<link rel="stylesheet" href="app.css">
+</head><body>
+<div class="bg"></div>
+<header>
+  <div class="brand"><svg viewBox="0 0 24 24" width="26" height="26"><rect x="6" y="2" width="12" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v7M6 9h12" stroke="currentColor" stroke-width="1.8"/></svg><b>RS7 <span>Linux</span></b></div>
+  <div class="profiles" id="profbar" role="tablist"></div>
+  <span class="sp"></span>
+  <span class="chip" id="bat">—</span><span class="chip" id="fw">—</span>
+</header>
+<div id="err" class="card center"><h2 data-i18n="err.title"></h2><p id="errmsg"></p><button class="pri" onclick="load()" data-i18n="err.retry"></button></div>
+<div id="app">
+<nav id="tabs"></nav>
+<main>
+<section id="t-buttons"><div class="card"><h2 data-i18n="btn.title"></h2><p data-i18n="btn.sub"></p>
+<div class="mouse"><div class="mousebox"><svg viewBox="0 0 260 400" width="260">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--mouse1)"/><stop offset="1" stop-color="var(--mouse2)"/></linearGradient></defs>
+<path d="M48 160C48 66 86 18 130 18s82 48 82 142v120c0 64-38 102-82 102s-82-38-82-102z" fill="url(#g)" stroke="var(--line)" stroke-width="2"/>
+<path id="b0" class="hot" d="M52 150C52 78 84 30 126 24V150z"/><path id="b1" class="hot" d="M134 24c42 6 74 54 74 126H134z"/>
+<rect id="b2" class="hot" x="118" y="52" width="24" height="56" rx="11"/><rect id="b3" class="hot" x="32" y="182" width="30" height="40" rx="9"/><rect id="b4" class="hot" x="32" y="228" width="30" height="40" rx="9"/><rect id="b5" class="hot" x="118" y="122" width="24" height="30" rx="9"/>
+<g class="lab"><text x="90" y="100">L</text><text x="170" y="100">R</text><text x="130" y="85">M</text><text x="47" y="206">B</text><text x="47" y="252">F</text><text x="130" y="141">DPI</text></g></svg></div>
+<div class="form"><div class="row"><label data-i18n="btn.button"></label><b id="bname"></b></div>
+<div class="row"><label data-i18n="btn.action"></label><select id="atype"></select></div>
+<div class="row" id="rmouse"><label data-i18n="btn.mouse"></label><select id="amouse"></select></div>
+<div class="row" id="rkey"><label data-i18n="btn.key"></label><select id="akey"></select></div>
+<div class="row mods" id="rmods"><label data-i18n="btn.mods"></label><span id="mods"></span></div>
+<div class="row" id="rmedia"><label data-i18n="btn.media"></label><select id="amedia"></select></div>
+<div class="row" id="rmacro"><label data-i18n="btn.macro"></label><select id="amacro"></select><select id="mmode"></select><input type="number" id="mcount" min="1" max="255" value="1" style="width:70px"></div>
+<div class="row"><button class="pri" onclick="applyKeys()" data-i18n="btn.apply"></button><button class="sec" onclick="resetKeys()" data-i18n="btn.reset"></button></div>
+<p class="warn" data-i18n="btn.warn"></p></div></div></div></section>
+
+<section id="t-dpi"><div class="card"><h2 data-i18n="dpi.title"></h2><p data-i18n="dpi.sub"></p><div id="dpis"></div>
+<div class="row"><label data-i18n="dpi.count"></label><select id="dcount"></select></div><div class="row"><button class="pri" onclick="applyDpi()" data-i18n="apply"></button></div></div></section>
+
+<section id="t-perf"><div class="card"><h2 data-i18n="perf.title"></h2><p data-i18n="perf.sub"></p>
+<div class="row"><label data-i18n="perf.rate"></label><select id="rate"></select><span class="warn" data-i18n="perf.ratewarn"></span></div>
+<div class="row"><label data-i18n="perf.lod"></label><div class="seg" id="lod"></div></div>
+<div class="row"><label data-i18n="perf.deb"></label><input type="number" id="deb" min="0" max="20"></div>
+<div class="row"><label data-i18n="perf.sleep"></label><select id="sleep"></select></div>
+<div class="row"><label data-i18n="perf.scroll"></label><div class="seg" id="scroll"></div></div>
+<div class="row"><label data-i18n="perf.esports"></label><input type="checkbox" id="esp"><span class="warn" data-i18n="perf.espwarn"></span></div>
+<div class="row"><label data-i18n="perf.sensor"></label><span class="checks"><label><input type="checkbox" data-s="ripple"> <span data-i18n="perf.ripple"></span></label> <label><input type="checkbox" data-s="angle_snap"> <span data-i18n="perf.angle"></span></label> <label><input type="checkbox" data-s="motion_sync"> <span data-i18n="perf.sync"></span></label></span></div>
+<div class="row"><button class="pri" onclick="applyPerf()" data-i18n="apply"></button></div></div></section>
+
+<section id="t-macro"><div class="card"><h2 data-i18n="mac.title"></h2><p data-i18n="mac.sub"></p>
+<div class="row"><label data-i18n="mac.macro"></label><select id="mlist"></select><button class="sec" onclick="mNew()" data-i18n="mac.new"></button><button class="sec" onclick="mDel()" data-i18n="mac.del"></button></div>
+<div class="row"><label data-i18n="mac.name"></label><input id="mname" maxlength="40"></div>
+<div class="row"><label data-i18n="mac.record"></label><button class="sec" id="rec" onclick="mRec()"></button><span class="warn" data-i18n="mac.recwarn"></span></div>
+<table id="evs"></table>
+<div class="row"><button class="sec" onclick="mAdd()" data-i18n="mac.tap"></button><button class="sec" onclick="mClear()" data-i18n="mac.clear"></button><button class="pri" onclick="mSave()" data-i18n="mac.save"></button></div></div></section>
+
+<section id="t-light"><div class="card"><h2 data-i18n="light.title"></h2><p data-i18n="light.sub"></p><div class="seg" id="light"></div></div></section>
+
+<section id="t-settings"><div class="card"><h2 data-i18n="set.title"></h2>
+<div class="row"><label data-i18n="set.lang"></label><select id="slang"></select></div>
+<div class="row"><label data-i18n="set.theme"></label><select id="stheme"></select></div>
+<div class="row"><label data-i18n="set.tray"></label><input type="checkbox" id="stray"><span class="warn" data-i18n="set.traywarn"></span></div>
+<p class="warn" id="trayhint" style="display:none" data-i18n="set.trayhint"></p></div></section>
+
+<section id="t-about"><div class="card about"><h2>RS7 Linux <small id="ver"></small></h2><p data-i18n="about.desc"></p>
+<div class="links"><a class="pri lnk" href="https://github.com/JoaoBoscoDuarte/rs7-linux" target="_blank" rel="noopener">GitHub · rs7-linux</a>
+<a class="sec lnk" href="https://github.com/JoaoBoscoDuarte" target="_blank" rel="noopener" data-i18n="about.author"></a>
+<a class="sec lnk" href="https://github.com/JoaoBoscoDuarte/rs7-linux/issues" target="_blank" rel="noopener" data-i18n="about.issues"></a>
+<a class="sec lnk" href="https://github.com/JoaoBoscoDuarte/rs7-linux/releases" target="_blank" rel="noopener">Releases</a></div>
+<p class="warn" data-i18n="about.legal"></p></div></section>
+</main></div>
+<footer><span>© 2025–2026 <a href="https://github.com/JoaoBoscoDuarte" target="_blank" rel="noopener">João Bosco Duarte</a></span><span>·</span><a href="https://github.com/JoaoBoscoDuarte/rs7-linux" target="_blank" rel="noopener">rs7-linux</a><span>·</span><span id="fver"></span><span>·</span><span data-i18n="foot.unofficial"></span></footer>
+<dialog id="dlg"><form method="dialog"><h3 id="dtitle"></h3><input id="dinput" maxlength="40" autocomplete="off"><div class="row"><button class="sec" value="cancel" data-i18n="cancel"></button><button class="pri" value="ok" id="dok" data-i18n="ok"></button></div></form></dialog>
+<div id="toast"></div>
+<script src="i18n.js"></script><script src="app.js"></script>
+</body></html>
