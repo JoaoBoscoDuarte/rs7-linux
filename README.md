@@ -15,7 +15,13 @@ The vendor only ships a Windows driver and a Chrome/Edge WebHID page; this proje
 | Lift-off distance, debounce, sleep time, scroll direction, e-sports mode, sensor options | implemented, read-back verified |
 | Lighting mode (off / steady / breathing) | verified |
 | Button remapping (mouse, keyboard keys + modifiers, media, DPI loop, disable) | verified (write + read-back) |
-| Macros, per-stage LED colours | not yet — see [docs/PROTOCOL.md](docs/PROTOCOL.md) |
+| Macros (record/edit up to 32, bind to a button: repeat N / while held / until click) | upload + binding verified by read-back; the macro *playing* on a button press has not been checked on hardware yet |
+| Per-stage DPI LED colours | not possible: tested, the firmware does not store them (the vendor web tool does not offer them either) |
+
+## Screenshots
+![Buttons](docs/img/buttons.png)
+![DPI](docs/img/dpi.png)
+![Macros](docs/img/macros.png)
 
 ## Install
 
