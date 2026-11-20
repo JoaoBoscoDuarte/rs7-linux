@@ -44,6 +44,7 @@ svg text{fill:var(--mut);font-size:11px;pointer-events:none}
 <div class="row" id="rmouse"><label>Mouse</label><select id="amouse"></select></div>
 <div class="row" id="rkey"><label>Key</label><select id="akey"></select></div>
 <div class="row mods" id="rmods"><label>Modifiers</label><span id="mods"></span></div>
+<div class="row" id="rmacro"><label>Macro</label><select id="amacro"></select> <select id="mmode"></select> <input type="number" id="mcount" min="1" max="255" value="1" style="width:70px"></div>
 <div class="row" id="rmedia"><label>Media</label><select id="amedia"></select></div>
 <div class="row"><button class="pri" onclick="applyKeys()">Apply all buttons</button><button class="sec" onclick="resetKeys()">Reset to defaults</button></div>
 <p class="warn">Changes are staged until you press Apply. Keep Left click mapped so you can still use the mouse.</p></div></div></div></section>
@@ -58,6 +59,12 @@ svg text{fill:var(--mut);font-size:11px;pointer-events:none}
 <div class="row"><label>E-sports mode</label><input type="checkbox" id="esp"><span class="warn">lower latency, more power</span></div>
 <div class="row"><label>Sensor</label><span><label><input type="checkbox" data-s="ripple"> Ripple control</label> <label><input type="checkbox" data-s="angle_snap"> Angle snap</label> <label><input type="checkbox" data-s="motion_sync"> Motion sync</label></span></div>
 <div class="row"><button class="pri" onclick="applyPerf()">Apply</button></div></div></section>
+<section id="t-macro"><div class="card"><h2>Macros</h2><p>Up to 32 macros, 4 KiB total. Saved in <code>~/.config/rs7-linux/macros.json</code> and uploaded to the mouse; then assign one to a button in the Buttons tab.</p>
+<div class="row"><label>Macro</label><select id="mlist"></select><button class="sec" onclick="mNew()">New</button><button class="sec" onclick="mDel()">Delete</button></div>
+<div class="row"><label>Name</label><input id="mname"></div>
+<div class="row"><label>Record</label><button class="sec" id="rec" onclick="mRec()">● Start recording</button><span class="warn">captures keys typed in this page, with timing</span></div>
+<table id="evs" style="width:100%;border-collapse:collapse"></table>
+<div class="row"><button class="sec" onclick="mAdd()">+ Key tap</button><button class="sec" onclick="mClear()">Clear</button><button class="pri" onclick="mSave()">Save &amp; upload to mouse</button></div></div></section>
 <section id="t-light"><div class="card"><h2>Lighting</h2><p>Mode (the RS7 firmware exposes off / steady / breathing).</p><div class="seg" id="light"></div></div></section>
 </main></div><div id="toast"></div>
 <script>
@@ -72,7 +79,7 @@ async function api(path,body){const r=await fetch(path,body===undefined?{}:{meth
 function opts(el,list,f){el.innerHTML=list.map((x,i)=>`<option value="${i}">${f(x)}</option>`).join("")}
 function seg(el,items,get,set){el.innerHTML="";items.forEach(([lab,val])=>{const b=document.createElement("button");b.textContent=lab;b.className=get()===val?"on":"";b.onclick=()=>{set(val);[...el.children].forEach(c=>c.className="");b.className="on"};el.appendChild(b)})}
 let P={};
-function render(){const c=S.config;$("fw").textContent=(S.info.id||"mouse")+" · "+S.info.build;$("bat").textContent="battery "+S.info.percent+"%"+(S.info.charging?" ⚡":"");
+function render(){const c=S.config;$("fw").textContent="firmware "+S.info.fw+" · "+S.info.date;$("bat").textContent="battery "+S.info.percent+"%"+(S.info.charging?" ⚡":"");
  // dpi
  $("dpis").innerHTML="";c.dpis.forEach((v,i)=>{const d=document.createElement("div");d.className="dpi"+(i==c.dpi_index?" cur":"")+(i>=c.dpi_count?" off":"");
   d.innerHTML=`<span class="n"><input type="radio" name="cur" ${i==c.dpi_index?"checked":""}></span><input type="range" min="100" max="20000" step="50" value="${v}"><input type="number" min="100" max="20000" step="50" value="${v}">`;
@@ -88,17 +95,17 @@ function render(){const c=S.config;$("fw").textContent=(S.info.id||"mouse")+" ·
  seg($("light"),S.meta.lights.map((l,i)=>[l[0].toUpperCase()+l.slice(1),i]),()=>c.light_mode,async v=>{try{await api("/api/light",{mode:v});c.light_mode=v;toast("Lighting set")}catch(e){toast(e.message,1)}});
 }
 function decode(e){const[t,a,b]=e;if(t==0x20)return["mouse",MOUSE.findIndex(m=>m[1]==a)];if(t==0x21&&a==0x55)return["dpi",0];if(t==0x21&&a==0x38)return[b==1?"wup":"wdn",0];
- if(t==0x10)return["key",KEYS.findIndex(k=>k[1]==b),a];if(t==0x30)return["media",MEDIA.findIndex(m=>m[1]==a&&m[2]==b)];return["mouse",5]}
-const ATYPES=[["mouse","Mouse button"],["dpi","DPI loop"],["wup","Wheel up"],["wdn","Wheel down"],["key","Keyboard key"],["media","Media"]];
+ if(t==0x10)return["key",KEYS.findIndex(k=>k[1]==b),a];if(t==0x70)return["macro",a,b,e[3]];if(t==0x30)return["media",MEDIA.findIndex(m=>m[1]==a&&m[2]==b)];return["mouse",5]}
+const ATYPES=[["mouse","Mouse button"],["dpi","DPI loop"],["wup","Wheel up"],["wdn","Wheel down"],["key","Keyboard key"],["media","Media"],["macro","Macro"]];
 function showSel(){const e=keys[sel],d=decode(e);for(let i=0;i<6;i++)$("b"+i).classList.toggle("on",i==sel);$("bname").textContent=BN[sel];
- $("atype").value=ATYPES.findIndex(a=>a[0]==d[0]);if(d[1]>=0){if(d[0]=="mouse")$("amouse").value=d[1];if(d[0]=="key")$("akey").value=d[1];if(d[0]=="media")$("amedia").value=d[1]}
+ $("atype").value=ATYPES.findIndex(a=>a[0]==d[0]);if(d[1]>=0){if(d[0]=="mouse")$("amouse").value=d[1];if(d[0]=="key")$("akey").value=d[1];if(d[0]=="media")$("amedia").value=d[1];if(d[0]=="macro"){$("amacro").value=d[1];$("mcount").value=d[2]||1;$("mmode").value=d[3]}}
  [...$("mods").querySelectorAll("input")].forEach((c,i)=>c.checked=d[0]=="key"&&!!(d[2]&MODS[i][1]));vis()}
-function vis(){const t=ATYPES[$("atype").value][0];$("rmouse").style.display=t=="mouse"?"":"none";$("rkey").style.display=$("rmods").style.display=t=="key"?"":"none";$("rmedia").style.display=t=="media"?"":"none"}
+function vis(){const t=ATYPES[$("atype").value][0];$("rmouse").style.display=t=="mouse"?"":"none";$("rkey").style.display=$("rmods").style.display=t=="key"?"":"none";$("rmedia").style.display=t=="media"?"":"none";$("rmacro").style.display=t=="macro"?"":"none"}
 function stage(){const t=ATYPES[$("atype").value][0];let e;
  if(t=="mouse")e=[0x20,MOUSE[$("amouse").value][1],0,0];else if(t=="dpi")e=[0x21,0x55,0,0];else if(t=="wup")e=[0x21,0x38,1,0];else if(t=="wdn")e=[0x21,0x38,255,0];
  else if(t=="key"){let m=0;[...$("mods").querySelectorAll("input")].forEach((c,i)=>{if(c.checked)m|=MODS[i][1]});e=[0x10,m,KEYS[$("akey").value][1],0]}
- else{const x=MEDIA[$("amedia").value];e=[0x30,x[1],x[2],0]}keys[sel]=e}
-async function load(){try{S=await api("/api/state");TOKEN=S.token;$("err").style.display="none";$("app").style.display="";keys=S.keys.slice(0,6).map((e,i)=>e[0]==255?DEFK[i]:e);render();showSel()}catch(e){$("app").style.display="none";$("err").style.display="";$("errmsg").textContent=e.message}}
+ else if(t=="macro"){const md=+$("mmode").value;e=[0x70,+$("amacro").value,md==0?+$("mcount").value||1:1,md]}else{const x=MEDIA[$("amedia").value];e=[0x30,x[1],x[2],0]}keys[sel]=e}
+async function load(){try{S=await api("/api/state");TOKEN=S.token;$("err").style.display="none";$("app").style.display="";keys=S.keys.slice(0,6).map((e,i)=>e[0]==255?DEFK[i]:e);MAC=S.macros||[];render();mRender();showSel()}catch(e){$("app").style.display="none";$("err").style.display="";$("errmsg").textContent=e.message}}
 const DEFK=[[0x20,1,0,0],[0x20,2,0,0],[0x20,4,0,0],[0x20,8,0,0],[0x20,16,0,0],[0x21,0x55,0,0]];
 async function applyKeys(){stage();try{const r=await api("/api/keys",{keys:keys.slice(0,6)});keys=r.slice(0,6).map((e,i)=>e[0]==255?DEFK[i]:e);toast("Buttons applied");showSel()}catch(e){toast(e.message,1)}}
 async function resetKeys(){try{await api("/api/keys/reset",{});await load();toast("Buttons reset")}catch(e){toast(e.message,1)}}
@@ -106,12 +113,36 @@ async function applyDpi(){const rows=[...document.querySelectorAll(".dpi")];cons
  try{S.config=await api("/api/config",{dpis,dpi_count:+$("dcount").value+1,dpi_index:Math.max(0,cur)});render();toast("DPI applied")}catch(e){toast(e.message,1)}}
 async function applyPerf(){let sf=0;document.querySelectorAll("[data-s]").forEach(e=>{if(e.checked)sf|=S.meta.sensor_bits[e.dataset.s]});
  try{S.config=await api("/api/config",{report_rate:+$("rate").value,lod:P.lod,debounce_ms:+$("deb").value,sleep_min:S.meta.sleep[$("sleep").value],scroll_reverse:P.scr,e_sports:$("esp").checked,sensor_flag:sf});render();toast("Performance applied")}catch(e){toast(e.message,1)}}
+// ---- macros
+let MAC=[],mi=0,recording=false,lastT=0;
+const HID={Enter:40,Escape:41,Backspace:42,Tab:43,Space:44,ArrowRight:79,ArrowLeft:80,ArrowDown:81,ArrowUp:82,ControlLeft:0xE0,ShiftLeft:0xE1,AltLeft:0xE2,MetaLeft:0xE3,ControlRight:0xE4,ShiftRight:0xE5,AltRight:0xE6,Delete:76};
+for(let i=0;i<26;i++)HID["Key"+String.fromCharCode(65+i)]=4+i;for(let i=1;i<=9;i++)HID["Digit"+i]=29+i;HID.Digit0=39;for(let i=1;i<=12;i++)HID["F"+i]=57+i;
+const HIDN={};for(const k in HID)HIDN[HID[k]]=k.replace(/^Key|^Digit/,"");
+const MBTN={1:"Left",2:"Right",4:"Middle",8:"Back",16:"Forward"};
+const cur=()=>MAC[mi];
+function mRender(){const l=$("mlist");l.innerHTML=MAC.map((m,i)=>`<option value="${i}">${i+1}. ${m.name||"macro"}</option>`).join("")||"<option>(none)</option>";l.value=mi;
+ opts($("amacro"),MAC.length?MAC:[{name:"(none)"}],m=>m.name);
+ const m=cur();$("mname").value=m?m.name:"";const t=$("evs");t.innerHTML="";if(!m)return;
+ m.events.forEach((e,i)=>{const r=t.insertRow();r.innerHTML=`<td>${i+1}</td><td><select data-k="kind"><option>key</option><option>mouse</option></select></td><td><select data-k="code">${e.kind=="mouse"?Object.entries(MBTN).map(([c,n])=>`<option value="${c}">${n}</option>`).join(""):Object.entries(HIDN).map(([c,n])=>`<option value="${c}">${n}</option>`).join("")}</select></td><td><select data-k="down"><option value="1">down</option><option value="0">up</option></select></td><td><input type="number" data-k="delay_ms" min="0" max="65535" style="width:90px"> ms</td><td><button class="sec" onclick="mRm(${i})">✕</button></td>`;
+  const s=r.querySelectorAll("[data-k]");s[0].value=e.kind;s[1].value=e.code;s[2].value=e.down?1:0;s[3].value=e.delay_ms;
+  s.forEach(x=>x.onchange=()=>{const k=x.dataset.k;if(k=="kind"){e.kind=x.value;e.code=e.kind=="mouse"?1:4;mRender()}else if(k=="down")e.down=x.value=="1";else e[k]=+x.value})})}
+function mNew(){MAC.push({name:"Macro "+(MAC.length+1),events:[]});mi=MAC.length-1;mRender()}
+function mDel(){MAC.splice(mi,1);mi=Math.max(0,mi-1);mRender()}
+function mAdd(){if(!cur())mNew();cur().events.push({kind:"key",code:4,down:true,delay_ms:0},{kind:"key",code:4,down:false,delay_ms:30});mRender()}
+function mRm(i){cur().events.splice(i,1);mRender()}
+function mClear(){if(cur()){cur().events=[];mRender()}}
+function mRec(){if(!cur())mNew();recording=!recording;$("rec").textContent=recording?"■ Stop recording":"● Start recording";if(recording){cur().events=[];lastT=0;mRender();$("rec").focus()}}
+function recEv(ev,down){if(!recording||ev.repeat)return;const c=HID[ev.code];if(c===undefined)return;ev.preventDefault();const now=ev.timeStamp,E=cur().events;
+ if(E.length)E[E.length-1].delay_ms=Math.min(65535,Math.round(now-lastT));lastT=now;E.push({kind:"key",code:c,down,delay_ms:0});mRender()}
+addEventListener("keydown",e=>recEv(e,true));addEventListener("keyup",e=>recEv(e,false));
+$("mlist").onchange=e=>{mi=+e.target.value;mRender()};$("mname").oninput=e=>{if(cur()){cur().name=e.target.value;const o=$("mlist").options[mi];if(o)o.textContent=`${mi+1}. ${cur().name}`}};
+async function mSave(){try{await api("/api/macros",{macros:MAC});toast("Macros uploaded");mRender()}catch(e){toast(e.message,1)}}
 // init static bits
-opts($("atype"),ATYPES,a=>a[1]);opts($("amouse"),MOUSE,m=>m[0]);opts($("akey"),KEYS,k=>k[0]);opts($("amedia"),MEDIA,m=>m[0]);
+opts($("atype"),ATYPES,a=>a[1]);opts($("amouse"),MOUSE,m=>m[0]);opts($("akey"),KEYS,k=>k[0]);opts($("amedia"),MEDIA,m=>m[0]);$("mmode").innerHTML='<option value="0">repeat N times</option><option value="2">loop while held</option><option value="3">loop until any click</option>';
 $("mods").innerHTML=MODS.map(m=>`<label><input type="checkbox"> ${m[0]}</label>`).join("");
-$("atype").onchange=()=>{vis();stage()};["amouse","akey","amedia"].forEach(i=>$(i).onchange=stage);$("mods").onchange=stage;
+$("atype").onchange=()=>{vis();stage()};["amouse","akey","amedia","amacro","mmode","mcount"].forEach(i=>$(i).onchange=stage);$("mods").onchange=stage;
 for(let i=0;i<6;i++)$("b"+i).onclick=()=>{stage();sel=i;showSel()};
-const TABS=[["buttons","Buttons"],["dpi","DPI"],["perf","Performance"],["light","Lighting"]];
+const TABS=[["buttons","Buttons"],["dpi","DPI"],["perf","Performance"],["macro","Macros"],["light","Lighting"]];
 $("tabs").innerHTML=TABS.map(([k,l],i)=>`<button data-k="${k}" class="${i?"":"on"}">${l}</button>`).join("");
 $("tabs").onclick=e=>{const k=e.target.dataset.k;if(!k)return;document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.k==k));document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id=="t-"+k))};
 $("t-buttons").classList.add("on");load();
