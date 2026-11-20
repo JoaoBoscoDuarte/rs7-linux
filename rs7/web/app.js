@@ -98,13 +98,19 @@ setInterval(async()=>{if(!S||!homeOn()||document.hidden||dpiBusy)return;dpiBusy=
  try{const r=await api("/api/status");if(r.dpi_index!==S.config.dpi_index){S.config.dpi_index=r.dpi_index;S.config.dpis=r.dpis;counts.dpi++;lit("h5",true);clearTimeout(dpiFlash);dpiFlash=setTimeout(()=>lit("h5",false),900);homeRender()}}catch(e){}
  dpiBusy=false},1200);
 function homeReset(){for(const k in counts)counts[k]=0;homeRender()}
-function lit(id,on){$(id).classList.toggle("on",on)}
+function lit(id,on){$(id).classList.toggle("on",on);window.Mouse3D&&Mouse3D.set(id,on)}
+// 3D / 2D view switch (3D = three.js module; falls back to the SVG when WebGL is unavailable)
+let view3d=false;
+function applyView(){const ok=!!window.Mouse3D,on=ok&&(ls.get("rs7.view")||"3d")==="3d";view3d=on;$("m3d").style.display=on?"block":"none";$("hmouse").style.display=on?"none":"";
+ $("viewbar").style.display=ok?"flex":"none";$("tip3d").style.display=on?"":"none";$("vtoggle").textContent=t(on?"home.view2d":"home.view3d");$("vauto").parentElement.style.display=on?"":"none"}
+function toggleView(){ls.set("rs7.view",view3d?"2d":"3d");applyView()}
+document.addEventListener("mouse3d-ready",applyView);
 addEventListener("mousedown",e=>{if(!homeOn()||!HB[e.button])return;lit(HB[e.button],true);counts[e.button]++;homeRender();if(e.button>2)e.preventDefault()},true);
 addEventListener("mouseup",e=>{if(!HB[e.button])return;lit(HB[e.button],false);if(e.button>2&&homeOn())e.preventDefault()},true);
 addEventListener("auxclick",e=>{if(homeOn()&&e.button>2)e.preventDefault()},true);
 addEventListener("contextmenu",e=>{if(homeOn()&&e.target.closest("#t-home"))e.preventDefault()});
 history.pushState({rs7:1},"");addEventListener("popstate",()=>history.pushState({rs7:1},""));   // swallow browser Back/Forward mouse buttons
-let wt={};addEventListener("wheel",e=>{if(!homeOn()||!e.target.closest("#t-home"))return;const up=e.deltaY<0,id=up?"hup":"hdn";counts[up?"up":"dn"]++;lit(id,true);clearTimeout(wt[id]);wt[id]=setTimeout(()=>lit(id,false),240);homeRender()},{passive:true});
+let wt={};addEventListener("wheel",e=>{if(!homeOn()||!e.target.closest("#t-home"))return;const up=e.deltaY<0,id=up?"hup":"hdn";counts[up?"up":"dn"]++;lit(id,true);window.Mouse3D&&Mouse3D.scroll(up?-1:1);clearTimeout(wt[id]);wt[id]=setTimeout(()=>lit(id,false),240);homeRender()},{passive:true});
 const pad=$("pad"),pc=pad.getContext("2d");let pts=[],last=null,speed=0,evs=[],rate=0;
 function padXY(e){const r=pad.getBoundingClientRect();return[(e.clientX-r.left)*pad.width/r.width,(e.clientY-r.top)*pad.height/r.height]}
 pad.addEventListener("mousemove",e=>{const[x,y]=padXY(e),n=performance.now(),co=e.getCoalescedEvents?e.getCoalescedEvents().length||1:1;
@@ -122,7 +128,7 @@ drawPad();
 // ---------- init
 function buildStatic(){const L=I18N[LANG];opts($("atype"),ATYPES,a=>t("act."+a));opts($("amouse"),MOUSE,(m,i)=>t("mouse.names")[i]);opts($("akey"),KEYS,k=>k[0]);opts($("amedia"),MEDIA,(m,i)=>t("media.names")[i]);
  $("mmode").innerHTML=[0,2,3].map(m=>`<option value="${m}">${esc(t("mode."+m))}</option>`).join("");$("mods").innerHTML=MODS.map(m=>`<label><input type="checkbox"> ${m[0]}</label>`).join("")}
-function renderAll(){i18n();homeRender();renderTabs();buildStatic();renderProfiles();renderDpi();renderPerf();renderSettings();mRender();showSel();
+function renderAll(){i18n();homeRender();if(window.Mouse3D)applyView();renderTabs();buildStatic();renderProfiles();renderDpi();renderPerf();renderSettings();mRender();showSel();
  $("bat").textContent=t("bat")+" "+S.info.percent+"%"+(S.info.charging?" ⚡":"");$("fw").textContent=t("fw")+" "+S.info.fw+" · "+S.info.date;$("ver").textContent="v"+S.version;$("fver").textContent="v"+S.version}
 async function load(){try{S=await api("/api/state");TOKEN=S.token;$("err").style.display="none";$("app").style.display="flex";
   const sv=S.settings;if(!ls.get("rs7.lang")){LANG=resolveLang(sv.lang)}if(!ls.get("rs7.theme"))setTheme(sv.theme);
