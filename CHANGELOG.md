@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.1
+- Fix: Back/Forward side buttons were drawn swapped in the mouse view (Forward is the front one, Back the rear one) on Home and Buttons tabs.
+
 ## 0.4.0
 - New Home screen: live mouse view that lights the clicked button / wheel direction, click counters, and a movement test pad (trail, position, speed, estimated event rate, current DPI). Browser Back/Forward mouse buttons are swallowed while on Home.
 
