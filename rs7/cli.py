@@ -13,6 +13,7 @@ def main(argv=None) -> int:
     s = sub.add_parser("dpi"); s.add_argument("slot", type=int, choices=range(1, 7)); s.add_argument("value", type=int)
     s = sub.add_parser("set"); s.add_argument("field"); s.add_argument("value")
     s = sub.add_parser("light"); s.add_argument("mode", choices=p.LIGHT_MODES)
+    s = sub.add_parser("macro"); s.add_argument("action", choices=["list", "upload"]); s.add_argument("file", nargs="?")
     s = sub.add_parser("gui"); s.add_argument("--port", type=int, default=7777); s.add_argument("--no-browser", action="store_true")
     a = ap.parse_args(argv)
     try:
@@ -26,7 +27,11 @@ def main(argv=None) -> int:
         elif a.cmd == "dpi":
             d = m.config()["dpis"]; d[a.slot - 1] = a.value
             out = m.set_config({"dpis": d})
-        elif a.cmd == "light": out = {"light_mode": m.set_light(p.LIGHT_MODES.index(a.mode))}
+        elif a.cmd == "macro":
+            from . import store
+            if a.action == "list": out = store.load()
+            else:
+                out = json.load(open(a.file)); m.upload_macros([x["events"] for x in out]); store.save(out)
         else:
             v = json.loads(a.value)
             out = m.set_config({a.field: v})

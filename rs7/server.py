@@ -3,7 +3,7 @@ from __future__ import annotations
 import json, os, threading, webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import protocol as p
+from . import protocol as p, store
 from .hid import DeviceNotFound, Mouse
 
 WEB = os.path.join(os.path.dirname(__file__), "web")
@@ -53,12 +53,16 @@ class Handler(BaseHTTPRequestHandler):
             m = self._mouse(); path = self.path.split("?")[0]
             if method == "GET" and path == "/api/state":
                 return self._send(200, {"info": m.info(), "config": m.config(),
-                                        "keys": m.keys(), "buttons": p.BUTTONS, "token": Handler.token,
+                                        "keys": m.keys(), "macros": store.load(), "buttons": p.BUTTONS, "token": Handler.token,
                                         "meta": {"rates": p.REPORT_RATES, "sleep": p.SLEEP_MINUTES,
                                                  "lights": p.LIGHT_MODES, "sensor_bits": p.SENSOR_BITS}})
             if method == "POST" and path == "/api/config": return self._send(200, m.set_config(body))
             if method == "POST" and path == "/api/keys": return self._send(200, m.set_keys([tuple(e) for e in body["keys"]]))
             if method == "POST" and path == "/api/keys/reset": return self._send(200, m.reset_keys())
+            if method == "POST" and path == "/api/macros":
+                macros = body["macros"]
+                m.upload_macros([x["events"] for x in macros])   # validates; raises before saving
+                store.save(macros); return self._send(200, {"macros": macros})
             if method == "POST" and path == "/api/light": return self._send(200, {"light_mode": m.set_light(int(body["mode"]))})
             self._send(404, {"error": "unknown endpoint"})
         except DeviceNotFound as e:
