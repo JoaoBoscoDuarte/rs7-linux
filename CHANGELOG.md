@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.0
+- New Home screen: live mouse view that lights the clicked button / wheel direction, click counters, and a movement test pad (trail, position, speed, estimated event rate, current DPI). Browser Back/Forward mouse buttons are swallowed while on Home.
+
 ## 0.3.0
 - Profiles: 5 by default, add with `+` (max 20), rename, delete. Every change made in the app is saved into the active profile; switching applies it to the mouse (with read-back). `rs7 profile list|apply`.
 - UI redesign (sidebar, vendor-site-inspired dark navy look, own SVG mouse), light/dark/auto theme, English and Português (Brasil), Settings and About tabs, credits footer.
