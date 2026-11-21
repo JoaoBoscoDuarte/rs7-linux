@@ -16,12 +16,16 @@ def main(argv=None) -> int:
     s = sub.add_parser("macro"); s.add_argument("action", choices=["list", "upload"]); s.add_argument("file", nargs="?")
     s = sub.add_parser("profile"); s.add_argument("action", choices=["list", "apply"]); s.add_argument("name", nargs="?")
     sub.add_parser("tray")
+    s = sub.add_parser("model"); s.add_argument("action", choices=["import", "remove"]); s.add_argument("path", nargs="?")
     s = sub.add_parser("gui"); s.add_argument("--port", type=int, default=7777); s.add_argument("--no-browser", action="store_true")
     a = ap.parse_args(argv)
     try:
         if a.cmd == "gui":
             from .server import serve
             return serve(a.port, not a.no_browser)
+        if a.cmd == "model":
+            from . import model
+            print(model.import_model(a.path) if a.action == "import" else model.remove()); return 0
         if a.cmd == "tray":
             from .tray import run
             return run()

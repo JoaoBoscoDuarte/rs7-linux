@@ -48,6 +48,10 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok(): return self._send(403, {"error": "bad host"})
         if self.path.startswith("/api/"):
             return self._api("GET", None)
+        if self.path.split("?")[0] == "/model/mouse.obj":      # optional user-supplied 3D model (not bundled)
+            from . import model; f = model.DEST()
+            if not os.path.isfile(f): return self._send(404, {"error": "no model"})
+            return self._send(200, open(f, "rb").read(), "text/plain; charset=utf-8")
         name = "index.html" if self.path in ("/", "") else self.path.lstrip("/")
         f = os.path.normpath(os.path.join(WEB, name))
         if not f.startswith(WEB) or not os.path.isfile(f):
