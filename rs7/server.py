@@ -3,11 +3,14 @@ from __future__ import annotations
 import json, os, threading, webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import __version__, profiles, protocol as p, store
+from . import __version__, events, profiles, protocol as p, store
 from .hid import DeviceNotFound, Mouse
 
 WEB = os.path.join(os.path.dirname(__file__), "web")
 TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml"}
+
+
+FEED = events.Feed()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -28,6 +31,21 @@ class Handler(BaseHTTPRequestHandler):
             st = profiles.seed(m.snapshot(store.load())); profiles.save_profiles(st)
         return st
 
+    def _sse(self):
+        """Server-sent events: live button/wheel state from the device (see events.py)."""
+        self.send_response(200); self.send_header("Content-Type", "text/event-stream"); self.send_header("Cache-Control", "no-store")
+        self.send_header("Connection", "close"); self.end_headers()
+        try:
+            self.wfile.write(("data: " + json.dumps({"hello": 1, "ok": FEED.ok, "mask": FEED.mask}) + "\n\n").encode()); self.wfile.flush()
+            if not FEED.ok: return
+            last = FEED.seq
+            while True:
+                evs, last = FEED.since(last)
+                if not FEED.ok: return
+                out = "".join("data: " + json.dumps(e) + "\n\n" for e in evs) or ": ping\n\n"
+                self.wfile.write(out.encode()); self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError, OSError): return
+
     def _autosave(self, m):
         """Every change made through the app is stored in the active profile."""
         try:
@@ -46,6 +64,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if not self._host_ok(): return self._send(403, {"error": "bad host"})
+        if self.path.split("?")[0] == "/api/events": return self._sse()
         if self.path.startswith("/api/"):
             return self._api("GET", None)
         if self.path.split("?")[0] == "/model/mouse.obj":      # optional user-supplied 3D model (not bundled)
@@ -118,7 +137,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def serve(port=7777, open_browser=True) -> int:
-    Handler.token = os.urandom(8).hex()
+    Handler.token = os.urandom(8).hex(); FEED.start()
     srv = None
     for p_ in range(port, port + 10):                       # an old `rs7 gui` may still hold the port: try the next ones
         try: srv = ThreadingHTTPServer(("127.0.0.1", p_), Handler); break
