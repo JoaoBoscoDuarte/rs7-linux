@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0
+- 2D mouse is shorter (better proportions); the side view was removed.
+- Buttons tab now uses the same 2D drawing (click a button on the mouse to remap it).
+- Live button/wheel feed from the device (evdev → server-sent events): side buttons and quick clicks now light up reliably; browser events remain as fallback with an explanatory hint.
+
 ## 0.7.2
 - `rs7 gui`: when the port is already taken (e.g. an older instance still running) it says so and uses the next free port instead of crashing with a traceback.
 

@@ -16,7 +16,8 @@ The vendor only ships a Windows driver and a Chrome/Edge WebHID page; this proje
 | Lighting mode (off / steady / breathing) | verified |
 | Button remapping (mouse, keyboard keys + modifiers, media, DPI loop, disable) | verified (write + read-back) |
 | Macros (record/edit up to 32, bind to a button: repeat N / while held / until click) | upload + binding verified by read-back; the macro *playing* on a button press has not been checked on hardware yet |
-| Home: live mouse view traced from the product photos (top view + side view with a flip animation) whose buttons/wheel light up as you click/scroll, click counters, DPI button flashes on stage change, plus a movement test pad with trail, speed and event-rate estimate | UI-tested with synthetic events |
+| Home: live mouse view (vector drawing traced from the product photos, optional 3D) whose buttons/wheel light up as you click/scroll — read straight from the device via evdev, so the side buttons and every quick click show up — plus click counters, DPI button flash on stage change and a movement test pad | feed unit-tested + UI-tested with injected events; try it with your mouse |
+| Buttons tab uses the same drawing: click a button on the mouse to remap it | UI-tested |
 | Profiles: 5 by default, `+` to add more (up to 20), rename/delete; every change is saved into the active profile | verified on hardware |
 | English + Português (Brasil), light/dark/auto theme | UI-tested |
 | Tray icon (battery %, profile switcher, open app) via StatusNotifierItem — GNOME, KDE, XFCE, Cinnamon, MATE… | registration + menu + profile switching verified on GNOME/Wayland; other desktops use the same standard protocol |
@@ -49,6 +50,9 @@ rs7 light breathing
 rs7 profile list      # software profiles; `rs7 profile apply "Profile 2"`
 rs7 tray              # panel icon with battery + profile switcher (also: Settings → Tray icon)
 ```
+
+### Live button feed
+The Home view reads the mouse's button/wheel events directly from `/dev/input/event*` (passive, nothing is grabbed), so it works for the side buttons that browsers hide and even when the window is not focused. It needs read access to the input devices (on most distros: be in the `input` group). Without it the UI says so and falls back to browser events.
 
 ### Optional 3D mouse view
 The Home tab can show a rotatable 3D mouse (drag to rotate, scroll to zoom; buttons, wheel, DPI and side buttons glow). The repository does **not** ship a model — bring your own Wavefront `.obj` (a model whose licence you are allowed to use) and install it:
