@@ -103,8 +103,16 @@ function lit(id,on){const e=$(id);if(e)e.classList.toggle("on",on);const s=SIDE[
 // top / side view with a flip animation (vector drawings traced from the product photos)
 function flipView(){const f=$("flipper");f.classList.toggle("side");ls.set("rs7.view",f.classList.contains("side")?"side":"top");$("vtoggle").textContent=t(f.classList.contains("side")?"home.viewtop":"home.viewside")}
 function applyView(){const side=ls.get("rs7.view")==="side";$("flipper").classList.toggle("side",side);$("vtoggle").textContent=t(side?"home.viewtop":"home.viewside")}
-addEventListener("mousedown",e=>{if(!homeOn()||!HB[e.button])return;lit(HB[e.button],true);counts[e.button]++;homeRender();if(e.button>2)e.preventDefault()},true);
-addEventListener("mouseup",e=>{if(!HB[e.button])return;lit(HB[e.button],false);if(e.button>2&&homeOn())e.preventDefault()},true);
+// Button state machine: every press stays lit for at least MINLIT ms so even a quick click is visible.
+const MASK={0:1,2:2,1:4,3:8,4:16},MINLIT=200,bst={},btm={};
+function bDown(b){if(bst[b])return;bst[b]=true;btm[b]=performance.now();lit(HB[b],true);counts[b]++;homeRender();
+ if(b>2){clearTimeout(bst.t3);bst["x"+b]=setTimeout(()=>bUp(b),700)}}   // side buttons: failsafe if the browser eats the release (history navigation)
+function bUp(b){if(!bst[b])return;bst[b]=false;clearTimeout(bst["x"+b]);const d=Math.max(0,MINLIT-(performance.now()-btm[b]));setTimeout(()=>{if(!bst[b])lit(HB[b],false)},d)}
+function bSync(e){if(!homeOn()||e.buttons===undefined)return;for(const b in MASK){const on=!!(e.buttons&MASK[b]);if(on)bDown(+b);else if(b<3||e.type.endsWith("up"))bUp(+b)}}
+for(const type of ["pointerdown","pointermove","pointerup","mousedown","mousemove","mouseup"])addEventListener(type,e=>{
+ if(!homeOn())return;bSync(e);
+ if(e.type.endsWith("down")&&HB[e.button]!==undefined){bDown(e.button);if(e.button>2)e.preventDefault()}
+ if(e.type.endsWith("up")&&HB[e.button]!==undefined){bUp(e.button);if(e.button>2)e.preventDefault()}},true);
 addEventListener("auxclick",e=>{if(homeOn()&&e.button>2)e.preventDefault()},true);
 addEventListener("contextmenu",e=>{if(homeOn()&&e.target.closest("#t-home"))e.preventDefault()});
 history.pushState({rs7:1},"");addEventListener("popstate",()=>history.pushState({rs7:1},""));   // swallow browser Back/Forward mouse buttons

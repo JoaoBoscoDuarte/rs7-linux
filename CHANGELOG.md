@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1
+- Top view: broader, rounder rear (no more pointed tail) and a smooth waist.
+- Home: every button now lights up on a quick click (kept lit at least 200 ms); side buttons are also detected from the pointer `buttons` mask and have a failsafe timeout; works with pointer and mouse events.
+
 ## 0.6.0
 - Removed the experimental 3D mouse (it did not look right) and its vendored three.js. Home now has accurate vector drawings traced from the product photos: top view (centre slit, wheel with glow, DPI pill, arched seam, side buttons) and a side view, with a flip animation between them. Buttons, wheel and DPI light up in both views.
 
