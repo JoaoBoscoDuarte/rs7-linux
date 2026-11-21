@@ -99,10 +99,16 @@ setInterval(async()=>{if(!S||!homeOn()||document.hidden||dpiBusy)return;dpiBusy=
  dpiBusy=false},1200);
 function homeReset(){for(const k in counts)counts[k]=0;homeRender()}
 const SIDE={h0:"sh01",h1:"sh01",h2:"sh2",h3:"sh3",h4:"sh4",h5:"sh5"};
-function lit(id,on){const e=$(id);if(e)e.classList.toggle("on",on);const s=SIDE[id];if(s){const el=$(s);if(on)el.dataset["n"+id]=1;else delete el.dataset["n"+id];el.classList.toggle("on",Object.keys(el.dataset).some(k=>k[0]=="n"&&el.dataset[k]))}}
+function lit(id,on){window.Mouse3D&&Mouse3D.set(id,on);const e=$(id);if(e)e.classList.toggle("on",on);const s=SIDE[id];if(s){const el=$(s);if(on)el.dataset["n"+id]=1;else delete el.dataset["n"+id];el.classList.toggle("on",Object.keys(el.dataset).some(k=>k[0]=="n"&&el.dataset[k]))}}
 // top / side view with a flip animation (vector drawings traced from the product photos)
 function flipView(){const f=$("flipper");f.classList.toggle("side");ls.set("rs7.view",f.classList.contains("side")?"side":"top");$("vtoggle").textContent=t(f.classList.contains("side")?"home.viewtop":"home.viewside")}
-function applyView(){const side=ls.get("rs7.view")==="side";$("flipper").classList.toggle("side",side);$("vtoggle").textContent=t(side?"home.viewtop":"home.viewside")}
+let v3=false;
+function applyView(){const ok=!!window.Mouse3D;v3=ok&&(ls.get("rs7.view")||"3d")==="3d";const side=ls.get("rs7.view")==="side";
+ $("m3d").style.display=v3?"block":"none";$("flipper").style.display=v3?"none":"";$("flipper").classList.toggle("side",side);
+ $("v3d").style.display=ok?"":"none";$("v3d").textContent=t(v3?"home.view2d":"home.view3d");$("vtoggle").style.display=v3?"none":"";
+ $("vtoggle").textContent=t(side?"home.viewtop":"home.viewside");$("vreset").style.display=$("vauto").style.display=v3?"":"none";$("tip3d").style.display=v3?"":"none"}
+function toggle3d(){ls.set("rs7.view",v3?"top":"3d");applyView()}
+document.addEventListener("mouse3d-ready",applyView);
 // Button state machine: every press stays lit for at least MINLIT ms so even a quick click is visible.
 const MASK={0:1,2:2,1:4,3:8,4:16},MINLIT=200,bst={},btm={};
 function bDown(b){if(bst[b])return;bst[b]=true;btm[b]=performance.now();lit(HB[b],true);counts[b]++;homeRender();
@@ -116,7 +122,7 @@ for(const type of ["pointerdown","pointermove","pointerup","mousedown","mousemov
 addEventListener("auxclick",e=>{if(homeOn()&&e.button>2)e.preventDefault()},true);
 addEventListener("contextmenu",e=>{if(homeOn()&&e.target.closest("#t-home"))e.preventDefault()});
 history.pushState({rs7:1},"");addEventListener("popstate",()=>history.pushState({rs7:1},""));   // swallow browser Back/Forward mouse buttons
-let wt={};addEventListener("wheel",e=>{if(!homeOn()||!e.target.closest("#t-home"))return;const up=e.deltaY<0,id=up?"hup":"hdn";counts[up?"up":"dn"]++;lit(id,true);clearTimeout(wt[id]);wt[id]=setTimeout(()=>lit(id,false),240);homeRender()},{passive:true});
+let wt={};addEventListener("wheel",e=>{if(!homeOn()||!e.target.closest("#t-home"))return;const up=e.deltaY<0,id=up?"hup":"hdn";counts[up?"up":"dn"]++;lit(id,true);window.Mouse3D&&Mouse3D.scroll(up?-1:1);clearTimeout(wt[id]);wt[id]=setTimeout(()=>lit(id,false),240);homeRender()},{passive:true});
 const pad=$("pad"),pc=pad.getContext("2d");let pts=[],last=null,speed=0,evs=[],rate=0;
 function padXY(e){const r=pad.getBoundingClientRect();return[(e.clientX-r.left)*pad.width/r.width,(e.clientY-r.top)*pad.height/r.height]}
 pad.addEventListener("mousemove",e=>{const[x,y]=padXY(e),n=performance.now(),co=e.getCoalescedEvents?e.getCoalescedEvents().length||1:1;

@@ -2,6 +2,7 @@
 <html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RS7 Linux</title>
 <link rel="stylesheet" href="app.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
 </head><body>
 <div class="bg"></div>
 <header>
@@ -16,7 +17,7 @@
 <main>
 <section id="t-home"><div class="card"><h2 data-i18n="home.title"></h2><p data-i18n="home.sub"></p>
 <div class="home">
-<div class="mousebox big"><div class="flipper" id="flipper"><div class="inner">
+<div class="mousebox big"><div id="m3d" class="m3d"></div><div class="flipper" id="flipper"><div class="inner">
 <div class="face front"><svg viewBox="500 235 610 1170" id="hmouse" preserveAspectRatio="xMidYMid meet">
 <defs><linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--mouse1)"/><stop offset="1" stop-color="var(--mouse2)"/></linearGradient>
 <clipPath id="oc"><path id="outline" d="M805,255C720,255 640,290 590,345C548,395 528,460 528,540L528,700C528,800 530,860 534,930C540,1010 545,1060 560,1120C572,1180 596,1270 650,1325C700,1362 755,1375 805,1375C855,1375 910,1362 960,1325C1014,1270 1038,1180 1050,1120C1065,1060 1070,1010 1076,930C1080,860 1082,800 1082,700L1082,540C1082,460 1062,395 1020,345C970,290 890,255 805,255Z"/></clipPath></defs>
@@ -38,7 +39,7 @@
 <ellipse id="sh2" class="lit wheel" cx="176" cy="128" rx="30" ry="22"/><ellipse id="sh5" class="lit btn" cx="262" cy="104" rx="20" ry="8"/>
 <rect id="sh4" class="lit btn" x="250" y="168" width="96" height="26" rx="13"/><rect id="sh3" class="lit btn" x="366" y="168" width="96" height="26" rx="13"/>
 <g class="lab"><text x="298" y="211">F</text><text x="414" y="211">B</text></g></svg></div></div></div>
-<div class="viewbar" id="viewbar"><button class="sec" onclick="flipView()" id="vtoggle"></button></div>
+<div class="viewbar" id="viewbar"><button class="sec" onclick="toggle3d()" id="v3d" style="display:none"></button><button class="sec" onclick="flipView()" id="vtoggle"></button><button class="sec" id="vreset" style="display:none" onclick="Mouse3D&&Mouse3D.resetView()" data-i18n="home.resetview"></button><label class="auto" id="vauto" style="display:none"><input type="checkbox" onchange="Mouse3D&&Mouse3D.autoRotate(this.checked)"> <span data-i18n="home.autorot"></span></label></div><p class="warn tip3d" id="tip3d" style="display:none" data-i18n="home.dragtip"></p>
 <div class="counts" id="counts"></div><button class="sec" onclick="homeReset()" data-i18n="home.reset"></button></div>
 <div class="padwrap"><canvas id="pad" width="420" height="420"></canvas>
 <div class="stats"><div><span data-i18n="home.pos"></span><b id="spos">–</b></div><div><span data-i18n="home.delta"></span><b id="sdelta">–</b></div><div><span data-i18n="home.speed"></span><b id="sspeed">–</b></div><div><span data-i18n="home.rate"></span><b id="srate">–</b></div></div>
@@ -99,5 +100,5 @@
 <footer><span>© 2025–2026 <a href="https://github.com/JoaoBoscoDuarte" target="_blank" rel="noopener">João Bosco Duarte</a></span><span>·</span><a href="https://github.com/JoaoBoscoDuarte/rs7-linux" target="_blank" rel="noopener">rs7-linux</a><span>·</span><span id="fver"></span><span>·</span><span data-i18n="foot.unofficial"></span></footer>
 <dialog id="dlg"><form method="dialog"><h3 id="dtitle"></h3><input id="dinput" maxlength="40" autocomplete="off"><div class="row"><button class="sec" value="cancel" data-i18n="cancel"></button><button class="pri" value="ok" id="dok" data-i18n="ok"></button></div></form></dialog>
 <div id="toast"></div>
-<script src="i18n.js"></script><script src="app.js"></script>
+<script src="i18n.js"></script><script src="app.js"></script><script type="module" src="mouse3d.js"></script>
 </body></html>
