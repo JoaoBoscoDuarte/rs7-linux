@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rs7-linux"
-version = "0.6.1"
+version = "0.7.0"
 description = "Unofficial Linux configurator for the Smailwolf RS7 gaming mouse (YJX chip): DPI, polling rate, buttons, lighting"
 readme = "README.md"
 license = { text = "MIT" }
@@ -22,4 +22,4 @@ Homepage = "https://github.com/JoaoBoscoDuarte/rs7-linux"
 packages = ["rs7"]
 
 [tool.setuptools.package-data]
-rs7 = ["web/*"]
+rs7 = ["web/*", "web/vendor/*"]

@@ -50,6 +50,15 @@ rs7 profile list      # software profiles; `rs7 profile apply "Profile 2"`
 rs7 tray              # panel icon with battery + profile switcher (also: Settings → Tray icon)
 ```
 
+### Optional 3D mouse view
+The Home tab can show a rotatable 3D mouse (drag to rotate, scroll to zoom; buttons, wheel, DPI and side buttons glow). The repository does **not** ship a model — bring your own Wavefront `.obj` (a model whose licence you are allowed to use) and install it:
+
+```sh
+rs7 model import ~/Downloads/some-mouse.zip     # or a plain .obj
+rs7 model remove
+```
+Orientation expected: length along +X (front = +X), up = +Y, left side = −Z. The model is shown in the app's colours (white shell, dark wheel); the part with the wheel material is animated. Without a model the app uses the vector top/side drawings. The viewer bundles [three.js](https://threejs.org) r170 (MIT, `rs7/web/vendor/`), so everything works offline.
+
 ### Tray icon
 Needs only PyGObject (`python3-gi`, already present on GNOME/KDE desktops). KDE, XFCE, Cinnamon, MATE and Budgie show it natively. **GNOME** hides tray icons unless the *AppIndicator and KStatusNotifierItem Support* extension is enabled (Ubuntu ships it enabled; Debian: `sudo apt install gnome-shell-extension-appindicator`, then enable it). Turn it on in **Settings → Tray icon**: it starts now and at every login.
 

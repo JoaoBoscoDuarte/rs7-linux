@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.0
+- Optional 3D view with a user-supplied OBJ model (`rs7 model import/remove`): rotate/zoom/auto-rotate, glowing L/R panels, wheel (spins), DPI and side buttons; flipped normals fixed, recoloured to a white RS7 look. Falls back to the vector drawings when no model is installed or WebGL is missing. The model is not bundled (licence unknown); three.js r170 vendored again.
+
 ## 0.6.1
 - Top view: broader, rounder rear (no more pointed tail) and a smooth waist.
 - Home: every button now lights up on a quick click (kept lit at least 200 ms); side buttons are also detected from the pointer `buttons` mask and have a failsafe timeout; works with pointer and mouse events.
