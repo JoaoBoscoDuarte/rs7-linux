@@ -6,12 +6,12 @@ import { RoomEnvironment } from "./vendor/RoomEnvironment.js";
 import { OBJLoader } from "./vendor/OBJLoader.js";
 
 const host = document.getElementById("m3d");
-const fail = () => { window.Mouse3D = null; document.dispatchEvent(new Event("mouse3d-fail")); };
-(async () => {
+const fail = (reason, detail) => { window.Mouse3D = null; window.Mouse3DFail = { reason, detail: detail || "" }; document.dispatchEvent(new Event("mouse3d-fail")); };
+async function start() {
   let text;
-  try { const r = await fetch("model/mouse.obj"); if (!r.ok) return fail(); text = await r.text(); } catch (e) { return fail(); }
+  try { const r = await fetch("model/mouse.obj"); if (!r.ok) return fail("model", r.status); text = await r.text(); } catch (e) { return fail("error", e.message); }
   let renderer;
-  try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { return fail(); }
+  try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch (e) { return fail("gl"); }
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.8;
   host.appendChild(renderer.domElement);
@@ -93,4 +93,5 @@ const fail = () => { window.Mouse3D = null; document.dispatchEvent(new Event("mo
     view(az, el) { const d = L * 2.25; camera.position.set(d * Math.sin(az) * Math.cos(el), d * Math.sin(el), d * Math.cos(az) * Math.cos(el)); controls.update(); },
   };
   document.dispatchEvent(new Event("mouse3d-ready"));
-})();
+}
+start().catch((e) => { console.error("3D view failed", e); fail("error", e && e.message); });

@@ -109,6 +109,8 @@ function applyView(){const ok=!!window.Mouse3D;v3=ok&&(ls.get("rs7.view")||"3d")
  $("vtoggle").textContent=t(side?"home.viewtop":"home.viewside");$("vreset").style.display=$("vauto").style.display=v3?"":"none";$("tip3d").style.display=v3?"":"none"}
 function toggle3d(){ls.set("rs7.view",v3?"top":"3d");applyView()}
 document.addEventListener("mouse3d-ready",applyView);
+document.addEventListener("mouse3d-fail",()=>{const f=window.Mouse3DFail||{};const k=f.reason==="model"?"home.fail.model":f.reason==="gl"?"home.fail.gl":"home.fail.err";const el=$("fail3d");el.dataset.k=k;el.dataset.d=f.detail||"";failText();el.style.display=""});
+function failText(){const el=$("fail3d");if(el.dataset.k)el.textContent=t(el.dataset.k)+(el.dataset.d?" ("+el.dataset.d+")":"")}
 // Button state machine: every press stays lit for at least MINLIT ms so even a quick click is visible.
 const MASK={0:1,2:2,1:4,3:8,4:16},MINLIT=200,bst={},btm={};
 function bDown(b){if(bst[b])return;bst[b]=true;btm[b]=performance.now();lit(HB[b],true);counts[b]++;homeRender();
@@ -140,7 +142,7 @@ drawPad();
 // ---------- init
 function buildStatic(){const L=I18N[LANG];opts($("atype"),ATYPES,a=>t("act."+a));opts($("amouse"),MOUSE,(m,i)=>t("mouse.names")[i]);opts($("akey"),KEYS,k=>k[0]);opts($("amedia"),MEDIA,(m,i)=>t("media.names")[i]);
  $("mmode").innerHTML=[0,2,3].map(m=>`<option value="${m}">${esc(t("mode."+m))}</option>`).join("");$("mods").innerHTML=MODS.map(m=>`<label><input type="checkbox"> ${m[0]}</label>`).join("")}
-function renderAll(){i18n();homeRender();applyView();renderTabs();buildStatic();renderProfiles();renderDpi();renderPerf();renderSettings();mRender();showSel();
+function renderAll(){i18n();homeRender();failText();applyView();renderTabs();buildStatic();renderProfiles();renderDpi();renderPerf();renderSettings();mRender();showSel();
  $("bat").textContent=t("bat")+" "+S.info.percent+"%"+(S.info.charging?" ⚡":"");$("fw").textContent=t("fw")+" "+S.info.fw+" · "+S.info.date;$("ver").textContent="v"+S.version;$("fver").textContent="v"+S.version}
 async function load(){try{S=await api("/api/state");TOKEN=S.token;$("err").style.display="none";$("app").style.display="flex";
   const sv=S.settings;if(!ls.get("rs7.lang")){LANG=resolveLang(sv.lang)}if(!ls.get("rs7.theme"))setTheme(sv.theme);

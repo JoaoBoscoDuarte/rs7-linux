@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.1
+- Home shows why the 3D view is off (no model / older server needs a restart / no WebGL / load error) instead of failing silently.
+
 ## 0.7.0
 - Optional 3D view with a user-supplied OBJ model (`rs7 model import/remove`): rotate/zoom/auto-rotate, glowing L/R panels, wheel (spins), DPI and side buttons; flipped normals fixed, recoloured to a white RS7 look. Falls back to the vector drawings when no model is installed or WebGL is missing. The model is not bundled (licence unknown); three.js r170 vendored again.
 
