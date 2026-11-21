@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.6.0
+- Removed the experimental 3D mouse (it did not look right) and its vendored three.js. Home now has accurate vector drawings traced from the product photos: top view (centre slit, wheel with glow, DPI pill, arched seam, side buttons) and a side view, with a flip animation between them. Buttons, wheel and DPI light up in both views.
+
 ## 0.5.1
 - 3D mouse redone from the product photos: concave waist, rounder narrower rear, hump ahead of the middle, arched seam behind the main buttons, centre slit with wheel + DPI pill, two side pills, satin finish, environment reflections, wheel glow ring, 3/4 front-left default view. Still an approximation of the RS7.
 

@@ -2,7 +2,6 @@
 <html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RS7 Linux</title>
 <link rel="stylesheet" href="app.css">
-<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
 </head><body>
 <div class="bg"></div>
 <header>
@@ -17,14 +16,29 @@
 <main>
 <section id="t-home"><div class="card"><h2 data-i18n="home.title"></h2><p data-i18n="home.sub"></p>
 <div class="home">
-<div class="mousebox big"><div id="m3d" class="m3d"></div><div class="viewbar" id="viewbar" style="display:none"><button class="sec" id="vtoggle" onclick="toggleView()"></button><button class="sec" onclick="Mouse3D&&Mouse3D.resetView()" data-i18n="home.resetview"></button><label><input type="checkbox" id="vauto" onchange="Mouse3D&&Mouse3D.autoRotate(this.checked)"> <span data-i18n="home.autorot"></span></label></div><p class="warn tip3d" id="tip3d" style="display:none" data-i18n="home.dragtip"></p><svg viewBox="0 0 260 400" width="300" id="hmouse">
-<defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--mouse1)"/><stop offset="1" stop-color="var(--mouse2)"/></linearGradient></defs>
-<path d="M48 160C48 66 86 18 130 18s82 48 82 142v120c0 64-38 102-82 102s-82-38-82-102z" fill="url(#hg)" stroke="var(--line)" stroke-width="2"/>
-<clipPath id="hclip"><path d="M48 160C48 66 86 18 130 18s82 48 82 142v120c0 64-38 102-82 102s-82-38-82-102z"/></clipPath><g clip-path="url(#hclip)"><rect id="h0" class="lit" x="0" y="0" width="129" height="152"/><rect id="h1" class="lit" x="131" y="0" width="130" height="152"/></g><path d="M130 18v134M48 152h164" stroke="var(--line)" stroke-width="1.5" fill="none"/>
-<rect id="h2" class="lit btn" x="118" y="52" width="24" height="56" rx="11"/><rect id="h4" class="lit btn" x="32" y="182" width="30" height="40" rx="9"/><rect id="h3" class="lit btn" x="32" y="228" width="30" height="40" rx="9"/>
-<rect id="h5" class="lit btn" x="118" y="124" width="24" height="26" rx="9"/><path id="hup" class="lit arrow" d="M130 36l-9 10h18z"/><path id="hdn" class="lit arrow" d="M130 116l-9-10h18z"/>
-<g class="lab"><text x="90" y="100">L</text><text x="170" y="100">R</text><text x="47" y="206">F</text><text x="47" y="252">B</text><text x="130" y="141">DPI</text></g>
-<text id="hdpi" x="130" y="330" class="dpitxt"></text></svg>
+<div class="mousebox big"><div class="flipper" id="flipper"><div class="inner">
+<div class="face front"><svg viewBox="500 235 610 1170" id="hmouse" preserveAspectRatio="xMidYMid meet">
+<defs><linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--mouse1)"/><stop offset="1" stop-color="var(--mouse2)"/></linearGradient>
+<clipPath id="oc"><path id="outline" d="M805,255C720,255 640,290 590,345C548,395 528,460 528,540L528,700C528,800 530,860 534,930C540,1010 545,1060 560,1120C590,1250 690,1375 805,1375C920,1375 1020,1250 1050,1120C1065,1060 1070,1010 1076,930C1080,860 1082,800 1082,700L1082,540C1082,460 1062,395 1020,345C970,290 890,255 805,255Z"/></clipPath></defs>
+<use href="#outline" fill="url(#bg1)" stroke="var(--line)" stroke-width="5"/>
+<g clip-path="url(#oc)"><path id="h0" class="lit" d="M480,200H797V808Q640,800 480,760Z"/><path id="h1" class="lit" d="M1130,200H813V808Q970,800 1130,760Z"/></g>
+<path d="M575,772Q805,850 1040,772" fill="none" stroke="var(--seam)" stroke-width="5"/><rect x="797" y="290" width="16" height="520" rx="6" fill="var(--seam)"/>
+<rect x="762" y="368" width="86" height="184" rx="22" fill="var(--seam)"/><rect id="h2" class="lit wheel" x="777" y="384" width="56" height="152" rx="14"/>
+<g stroke="#000" stroke-opacity=".35" stroke-width="3"><path d="M777,398H833"/><path d="M777,410H833"/><path d="M777,422H833"/><path d="M777,434H833"/><path d="M777,446H833"/><path d="M777,458H833"/><path d="M777,470H833"/><path d="M777,482H833"/><path d="M777,494H833"/><path d="M777,506H833"/><path d="M777,518H833"/></g>
+<rect x="772" y="372" width="6" height="176" rx="3" fill="#35e0ff" opacity=".8"/><rect x="832" y="372" width="6" height="176" rx="3" fill="#35e0ff" opacity=".8"/>
+<rect id="h5" class="lit btn" x="787" y="610" width="36" height="62" rx="18"/>
+<path id="hup" class="lit arrow" d="M805,318l-14,18h28z"/><path id="hdn" class="lit arrow" d="M805,586l-14,-18h28z"/>
+<rect id="h4" class="lit btn" x="514" y="598" width="26" height="144" rx="12"/><rect id="h3" class="lit btn" x="514" y="760" width="26" height="122" rx="12"/>
+<g class="lab"><text x="665" y="560">L</text><text x="945" y="560">R</text><text x="500" y="676">F</text><text x="500" y="825">B</text><text x="805" y="1000" class="dpitxt" id="hdpi"></text></g></svg></div>
+<div class="face back"><svg viewBox="0 0 780 360" id="hside" preserveAspectRatio="xMidYMid meet">
+<defs><clipPath id="sc"><path id="sout" d="M30,272C26,215 66,168 126,144C186,120 252,100 332,80C422,58 542,52 624,84C696,112 738,166 750,222C756,248 752,268 738,274Z"/></clipPath></defs>
+<use href="#sout" fill="url(#bg1)" stroke="var(--line)" stroke-width="3"/>
+<g clip-path="url(#sc)"><path id="sh01" class="lit" d="M0,0H400L360,140Q250,150 0,170Z"/></g>
+<path d="M356,76Q352,130 346,190" fill="none" stroke="var(--seam)" stroke-width="4"/>
+<ellipse id="sh2" class="lit wheel" cx="176" cy="128" rx="30" ry="22"/><ellipse id="sh5" class="lit btn" cx="262" cy="104" rx="20" ry="8"/>
+<rect id="sh4" class="lit btn" x="250" y="168" width="96" height="26" rx="13"/><rect id="sh3" class="lit btn" x="366" y="168" width="96" height="26" rx="13"/>
+<g class="lab"><text x="298" y="211">F</text><text x="414" y="211">B</text></g></svg></div></div></div>
+<div class="viewbar" id="viewbar"><button class="sec" onclick="flipView()" id="vtoggle"></button></div>
 <div class="counts" id="counts"></div><button class="sec" onclick="homeReset()" data-i18n="home.reset"></button></div>
 <div class="padwrap"><canvas id="pad" width="420" height="420"></canvas>
 <div class="stats"><div><span data-i18n="home.pos"></span><b id="spos">–</b></div><div><span data-i18n="home.delta"></span><b id="sdelta">–</b></div><div><span data-i18n="home.speed"></span><b id="sspeed">–</b></div><div><span data-i18n="home.rate"></span><b id="srate">–</b></div></div>
@@ -85,5 +99,5 @@
 <footer><span>© 2025–2026 <a href="https://github.com/JoaoBoscoDuarte" target="_blank" rel="noopener">João Bosco Duarte</a></span><span>·</span><a href="https://github.com/JoaoBoscoDuarte/rs7-linux" target="_blank" rel="noopener">rs7-linux</a><span>·</span><span id="fver"></span><span>·</span><span data-i18n="foot.unofficial"></span></footer>
 <dialog id="dlg"><form method="dialog"><h3 id="dtitle"></h3><input id="dinput" maxlength="40" autocomplete="off"><div class="row"><button class="sec" value="cancel" data-i18n="cancel"></button><button class="pri" value="ok" id="dok" data-i18n="ok"></button></div></form></dialog>
 <div id="toast"></div>
-<script src="i18n.js"></script><script src="app.js"></script><script type="module" src="mouse3d.js"></script>
+<script src="i18n.js"></script><script src="app.js"></script>
 </body></html>
