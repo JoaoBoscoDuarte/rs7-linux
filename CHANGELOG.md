@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.2
+- `rs7 gui`: when the port is already taken (e.g. an older instance still running) it says so and uses the next free port instead of crashing with a traceback.
+
 ## 0.7.1
 - Home shows why the 3D view is off (no model / older server needs a restart / no WebGL / load error) instead of failing silently.
 

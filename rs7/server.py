@@ -119,8 +119,14 @@ class Handler(BaseHTTPRequestHandler):
 
 def serve(port=7777, open_browser=True) -> int:
     Handler.token = os.urandom(8).hex()
-    srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    url = f"http://127.0.0.1:{port}/"
+    srv = None
+    for p_ in range(port, port + 10):                       # an old `rs7 gui` may still hold the port: try the next ones
+        try: srv = ThreadingHTTPServer(("127.0.0.1", p_), Handler); break
+        except OSError as e:
+            if e.errno != 98: raise
+            print(f"port {p_} is busy (is an older `rs7 gui` still running? close it, or it keeps serving the old version)")
+    if srv is None: print("no free port in %d..%d, use --port" % (port, port + 9)); return 1
+    url = f"http://127.0.0.1:{srv.server_address[1]}/"
     print("RS7 UI on", url, "(Ctrl+C to quit)")
     if open_browser: threading.Timer(0.4, webbrowser.open, [url]).start()
     try: srv.serve_forever()
