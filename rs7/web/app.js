@@ -98,16 +98,27 @@ setInterval(async()=>{if(!S||!homeOn()||document.hidden||dpiBusy)return;dpiBusy=
  try{const r=await api("/api/status");if(r.dpi_index!==S.config.dpi_index){S.config.dpi_index=r.dpi_index;S.config.dpis=r.dpis;counts.dpi++;lit("h5",true);clearTimeout(dpiFlash);dpiFlash=setTimeout(()=>lit("h5",false),900);homeRender()}}catch(e){}
  dpiBusy=false},1200);
 function homeReset(){for(const k in counts)counts[k]=0;homeRender()}
-const SIDE={h0:"sh01",h1:"sh01",h2:"sh2",h3:"sh3",h4:"sh4",h5:"sh5"};
-function lit(id,on){window.Mouse3D&&Mouse3D.set(id,on);const e=$(id);if(e)e.classList.toggle("on",on);const s=SIDE[id];if(s){const el=$(s);if(on)el.dataset["n"+id]=1;else delete el.dataset["n"+id];el.classList.toggle("on",Object.keys(el.dataset).some(k=>k[0]=="n"&&el.dataset[k]))}}
-// top / side view with a flip animation (vector drawings traced from the product photos)
-function flipView(){const f=$("flipper");f.classList.toggle("side");ls.set("rs7.view",f.classList.contains("side")?"side":"top");$("vtoggle").textContent=t(f.classList.contains("side")?"home.viewtop":"home.viewside")}
+// ---------- 2D mouse drawing (traced from the product photos), shared by Home (prefix "h") and Buttons (prefix "b")
+const SY=.8,TY=y=>Math.round(51+SY*y);
+function mouseSvg(p,home){const id=n=>p+n,rib=[...Array(11)].map((_,i)=>`<path d="M777,${398+i*12}H833"/>`).join("");
+ return `<svg viewBox="500 235 610 936" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="${id("g")}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--mouse1)"/><stop offset="1" stop-color="var(--mouse2)"/></linearGradient>
+<clipPath id="${id("c")}"><path id="${id("o")}" d="M805,255C720,255 640,290 590,345C548,395 528,460 528,540L528,700C528,800 530,860 534,930C540,1010 545,1060 560,1120C572,1180 596,1270 650,1325C700,1362 755,1375 805,1375C855,1375 910,1362 960,1325C1014,1270 1038,1180 1050,1120C1065,1060 1070,1010 1076,930C1080,860 1082,800 1082,700L1082,540C1082,460 1062,395 1020,345C970,290 890,255 805,255Z"/></clipPath></defs>
+<g transform="translate(0 51) scale(1 ${SY})"><use href="#${id("o")}" fill="url(#${id("g")})" stroke="var(--line)" stroke-width="5"/>
+<g clip-path="url(#${id("c")})"><path id="${id("0")}" class="lit" d="M480,200H797V808Q640,800 480,760Z"/><path id="${id("1")}" class="lit" d="M1130,200H813V808Q970,800 1130,760Z"/></g>
+<path d="M575,772Q805,850 1040,772" fill="none" stroke="var(--seam)" stroke-width="5"/><rect x="797" y="290" width="16" height="520" rx="6" fill="var(--seam)"/>
+<rect x="762" y="368" width="86" height="184" rx="22" fill="var(--seam)"/><rect id="${id("2")}" class="lit wheel" x="777" y="384" width="56" height="152" rx="14"/>
+<g stroke="#000" stroke-opacity=".35" stroke-width="3">${rib}</g><rect x="772" y="372" width="6" height="176" rx="3" fill="#35e0ff" opacity=".8"/><rect x="832" y="372" width="6" height="176" rx="3" fill="#35e0ff" opacity=".8"/>
+<rect id="${id("5")}" class="lit btn" x="787" y="610" width="36" height="62" rx="18"/>
+${home?`<path id="hup" class="lit arrow" d="M805,318l-14,18h28z"/><path id="hdn" class="lit arrow" d="M805,586l-14,-18h28z"/>`:""}
+<rect id="${id("4")}" class="lit btn" x="514" y="598" width="26" height="144" rx="12"/><rect id="${id("3")}" class="lit btn" x="514" y="760" width="26" height="122" rx="12"/></g>
+<text x="665" y="${TY(560)}">L</text><text x="945" y="${TY(560)}">R</text><text x="478" y="${TY(676)}">F</text><text x="478" y="${TY(825)}">B</text>${home?`<text id="hdpi" class="dpitxt" x="805" y="${TY(1000)}"></text>`:""}</svg>`}
+$("hwrap").innerHTML=mouseSvg("h",true);$("bwrap").innerHTML=mouseSvg("b",false);
+function lit(id,on){window.Mouse3D&&Mouse3D.set(id,on);const e=$(id);if(e)e.classList.toggle("on",on)}
 let v3=false;
-function applyView(){const ok=!!window.Mouse3D;v3=ok&&(ls.get("rs7.view")||"3d")==="3d";const side=ls.get("rs7.view")==="side";
- $("m3d").style.display=v3?"block":"none";$("flipper").style.display=v3?"none":"";$("flipper").classList.toggle("side",side);
- $("v3d").style.display=ok?"":"none";$("v3d").textContent=t(v3?"home.view2d":"home.view3d");$("vtoggle").style.display=v3?"none":"";
- $("vtoggle").textContent=t(side?"home.viewtop":"home.viewside");$("vreset").style.display=$("vauto").style.display=v3?"":"none";$("tip3d").style.display=v3?"":"none"}
-function toggle3d(){ls.set("rs7.view",v3?"top":"3d");applyView()}
+function applyView(){const ok=!!window.Mouse3D;v3=ok&&(ls.get("rs7.view")||"3d")==="3d";
+ $("m3d").style.display=v3?"block":"none";$("hwrap").style.display=v3?"none":"";
+ $("viewbar").style.display=ok?"flex":"none";$("v3d").textContent=t(v3?"home.view2d":"home.view3d");$("vreset").style.display=$("vauto").style.display=v3?"":"none";$("tip3d").style.display=v3?"":"none"}
+function toggle3d(){ls.set("rs7.view",v3?"2d":"3d");applyView()}
 document.addEventListener("mouse3d-ready",applyView);
 document.addEventListener("mouse3d-fail",()=>{const f=window.Mouse3DFail||{};const k=f.reason==="model"?"home.fail.model":f.reason==="gl"?"home.fail.gl":"home.fail.err";const el=$("fail3d");el.dataset.k=k;el.dataset.d=f.detail||"";failText();el.style.display=""});
 function failText(){const el=$("fail3d");if(el.dataset.k)el.textContent=t(el.dataset.k)+(el.dataset.d?" ("+el.dataset.d+")":"")}
@@ -118,13 +129,15 @@ function bDown(b){if(bst[b])return;bst[b]=true;btm[b]=performance.now();lit(HB[b
 function bUp(b){if(!bst[b])return;bst[b]=false;clearTimeout(bst["x"+b]);const d=Math.max(0,MINLIT-(performance.now()-btm[b]));setTimeout(()=>{if(!bst[b])lit(HB[b],false)},d)}
 function bSync(e){if(!homeOn()||e.buttons===undefined)return;for(const b in MASK){const on=!!(e.buttons&MASK[b]);if(on)bDown(+b);else if(b<3||e.type.endsWith("up"))bUp(+b)}}
 for(const type of ["pointerdown","pointermove","pointerup","mousedown","mousemove","mouseup"])addEventListener(type,e=>{
- if(!homeOn())return;bSync(e);
+ if(!homeOn())return;
+ if(devFeed){if(e.button>2&&(e.type.endsWith("down")||e.type.endsWith("up")))e.preventDefault();return}
+ bSync(e);
  if(e.type.endsWith("down")&&HB[e.button]!==undefined){bDown(e.button);if(e.button>2)e.preventDefault()}
  if(e.type.endsWith("up")&&HB[e.button]!==undefined){bUp(e.button);if(e.button>2)e.preventDefault()}},true);
 addEventListener("auxclick",e=>{if(homeOn()&&e.button>2)e.preventDefault()},true);
 addEventListener("contextmenu",e=>{if(homeOn()&&e.target.closest("#t-home"))e.preventDefault()});
 history.pushState({rs7:1},"");addEventListener("popstate",()=>history.pushState({rs7:1},""));   // swallow browser Back/Forward mouse buttons
-let wt={};addEventListener("wheel",e=>{if(!homeOn()||!e.target.closest("#t-home"))return;const up=e.deltaY<0,id=up?"hup":"hdn";counts[up?"up":"dn"]++;lit(id,true);window.Mouse3D&&Mouse3D.scroll(up?-1:1);clearTimeout(wt[id]);wt[id]=setTimeout(()=>lit(id,false),240);homeRender()},{passive:true});
+let wt={};addEventListener("wheel",e=>{if(devFeed||!homeOn()||!e.target.closest("#t-home"))return;const up=e.deltaY<0,id=up?"hup":"hdn";counts[up?"up":"dn"]++;lit(id,true);window.Mouse3D&&Mouse3D.scroll(up?-1:1);clearTimeout(wt[id]);wt[id]=setTimeout(()=>lit(id,false),240);homeRender()},{passive:true});
 const pad=$("pad"),pc=pad.getContext("2d");let pts=[],last=null,speed=0,evs=[],rate=0;
 function padXY(e){const r=pad.getBoundingClientRect();return[(e.clientX-r.left)*pad.width/r.width,(e.clientY-r.top)*pad.height/r.height]}
 pad.addEventListener("mousemove",e=>{const[x,y]=padXY(e),n=performance.now(),co=e.getCoalescedEvents?e.getCoalescedEvents().length||1:1;
@@ -139,6 +152,15 @@ function drawPad(){requestAnimationFrame(drawPad);if(!homeOn())return;const W=pa
  for(let i=1;i<pts.length;i++){const a=1-(n-pts[i][2])/1400;pc.strokeStyle=acc;pc.globalAlpha=Math.max(0,a);pc.lineWidth=2+4*a;pc.beginPath();pc.moveTo(pts[i-1][0],pts[i-1][1]);pc.lineTo(pts[i][0],pts[i][1]);pc.stroke()}
  pc.globalAlpha=1;if(last&&n-last[2]<1400){pc.fillStyle=acc;pc.shadowColor=acc;pc.shadowBlur=14;pc.beginPath();pc.arc(last[0],last[1],6,0,7);pc.fill();pc.shadowBlur=0}}
 drawPad();
+// ---------- device feed: real button/wheel state read from the mouse (evdev) via server-sent events
+let devFeed=false;
+function devButtons(mask){for(const b in MASK){if(mask&MASK[b])bDown(+b);else bUp(+b)}}
+function devWheel(w){const up=w>0,id=up?"hup":"hdn";counts[up?"up":"dn"]++;lit(id,true);window.Mouse3D&&Mouse3D.scroll(up?-1:1);clearTimeout(wt[id]);wt[id]=setTimeout(()=>lit(id,false),240);homeRender()}
+function startFeed(){let es;try{es=new EventSource("api/events")}catch(e){return}
+ es.onmessage=m=>{let d;try{d=JSON.parse(m.data)}catch(e){return}
+  if(d.hello){devFeed=!!d.ok;$("feedhint").style.display=d.ok?"none":"";if(!d.ok)es.close();else devButtons(d.mask||0);return}
+  if(!homeOn())return;if(d.b!==undefined)devButtons(d.b);if(d.w)devWheel(d.w)};
+ es.onerror=()=>{devFeed=false}}
 // ---------- init
 function buildStatic(){const L=I18N[LANG];opts($("atype"),ATYPES,a=>t("act."+a));opts($("amouse"),MOUSE,(m,i)=>t("mouse.names")[i]);opts($("akey"),KEYS,k=>k[0]);opts($("amedia"),MEDIA,(m,i)=>t("media.names")[i]);
  $("mmode").innerHTML=[0,2,3].map(m=>`<option value="${m}">${esc(t("mode."+m))}</option>`).join("");$("mods").innerHTML=MODS.map(m=>`<label><input type="checkbox"> ${m[0]}</label>`).join("")}
@@ -150,4 +172,4 @@ async function load(){try{S=await api("/api/state");TOKEN=S.token;$("err").style
  catch(e){$("app").style.display="none";$("err").style.display="block";$("errmsg").textContent=e.message;i18n()}}
 $("atype").onchange=()=>{vis();stage()};["amouse","akey","amedia","amacro","mmode","mcount"].forEach(i=>$(i).onchange=stage);$("mods").onchange=stage;
 for(let i=0;i<6;i++)$("b"+i).onclick=()=>{stage();sel=i;showSel()};
-i18n();load();
+i18n();load();startFeed();

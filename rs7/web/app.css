@@ -57,14 +57,15 @@ svg .lit.btn{stroke:var(--line);stroke-width:2}svg .lit.btn.on{stroke:var(--acc)
 
 
 :root,[data-theme=dark]{--seam:#15181d}[data-theme=light]{--seam:#cfd6e2}
-.flipper{perspective:1100px;width:100%}.flipper .inner{position:relative;width:100%;aspect-ratio:.62;transition:transform .8s cubic-bezier(.4,.1,.2,1);transform-style:preserve-3d}
-.flipper.side .inner{transform:rotateY(180deg);aspect-ratio:.62}
-.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center}.face.back{transform:rotateY(180deg)}
-.face svg{width:100%;height:100%}
-.viewbar{display:flex;justify-content:center}.viewbar button{padding:6px 14px;font-size:13px}
-svg .lit.wheel{fill:#14171c}svg .lit.wheel.on{fill:var(--acc)}svg .dpitxt{fill:#59616f;font-size:34px;font-weight:700;text-anchor:middle}
-svg .lab text{font-size:34px}svg .lit.btn{stroke-width:5}svg .lit.arrow{fill:#9aa3b2}
 
 .m3d{display:none;width:100%;aspect-ratio:1.05;cursor:grab;border-radius:12px;background:radial-gradient(circle at 50% 40%,#5a6272 0,#2b2d31 75%)}[data-theme=light] .m3d{background:radial-gradient(circle at 50% 40%,#ffffff 0,#cfd6e2 80%)}.m3d:active{cursor:grabbing}
 .m3d canvas{width:100%!important;height:100%!important;display:block;touch-action:none}
 .viewbar{gap:8px;flex-wrap:wrap;align-items:center}.viewbar .auto{display:inline-flex;gap:6px;align-items:center;color:var(--mut);font-size:13px}.tip3d{margin:0!important;text-align:center}
+
+.mouse2d{width:100%;aspect-ratio:.66}.mouse2d svg{width:100%;height:100%;display:block}
+.mouse2d .lit{fill:transparent;stroke:none;transition:fill .08s,filter .08s}
+.mouse2d .lit.on{fill:var(--acc);filter:drop-shadow(0 0 10px var(--acc)) drop-shadow(0 0 22px var(--acc))}
+.mouse2d .lit.btn{stroke:var(--line);stroke-width:5}.mouse2d .lit.btn.on{stroke:var(--acc)}
+.mouse2d .lit.wheel{fill:#14171c}.mouse2d .lit.wheel.on{fill:var(--acc)}.mouse2d .lit.arrow{fill:#9aa3b2}.mouse2d .lit.arrow.on{fill:var(--acc)}
+.mouse2d text{fill:#59616f;font-size:34px;text-anchor:middle;pointer-events:none}.mouse2d .dpitxt{font-weight:700}
+.mouse2d.pick .lit{cursor:pointer}.mouse2d.pick .lit:hover{fill:var(--hot)}.mouse2d.pick .lit.on{fill:var(--hot);stroke:var(--acc);stroke-width:6;filter:none}.mouse2d.pick .lit.wheel.on{fill:var(--acc)}
